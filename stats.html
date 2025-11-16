@@ -72,33 +72,39 @@
     auth.onAuthStateChanged(async user=>{
       if(!user) return window.location.href='login.html';
 
-      const profilePic = document.getElementById('profilePic');
-      const usernameEl = document.getElementById('username');
-      usernameEl.textContent = user.displayName || user.email;
+      document.getElementById('profilePic').src = user.photoURL || 'https://i.ibb.co/0FQG7kF/friendly-ghost.png';
+      document.getElementById('username').textContent = user.displayName || user.email;
 
       const userRef = db.collection('users').doc(user.uid);
+
+      // Count Blooks Owned
+      const blooksSnap = await userRef.collection('blooks').get();
+      const blooksOwned = blooksSnap.size;
+
+      // Count Packs Opened
+      const packsSnap = await userRef.collection('packsOpened').get();
+      const packsOpened = packsSnap.size;
+
+      // Example for tokens and messagesSent, fallback to 0 if not set
       const statsDoc = await userRef.get();
-      const stats = statsDoc.exists ? statsDoc.data() : {tokens:0,packsOpened:0,blooksOwned:0,messagesSent:0};
+      const stats = statsDoc.exists ? statsDoc.data() : {tokens:0,messagesSent:0};
 
       const statsGrid = document.getElementById('statsGrid');
       statsGrid.innerHTML = `
         <div class="stat-card">Tokens: ${stats.tokens||0}</div>
-        <div class="stat-card">Packs Opened: ${stats.packsOpened||0}</div>
-        <div class="stat-card">Blooks Owned: ${stats.blooksOwned||0}</div>
+        <div class="stat-card">Packs Opened: ${packsOpened}</div>
+        <div class="stat-card">Blooks Owned: ${blooksOwned}</div>
         <div class="stat-card">Messages Sent: ${stats.messagesSent||0}</div>
       `;
 
-      // Load Blooks
+      // Render Blooks
       const blooksGrid = document.getElementById('blooksGrid');
-      const blooksSnap = await userRef.collection('blooks').get();
-      const blooks = [];
-      blooksSnap.forEach(doc=> blooks.push(doc.data()));
-
-      if(blooks.length===0) document.getElementById('empty').classList.remove('hidden');
+      if(blooksOwned===0) document.getElementById('empty').classList.remove('hidden');
       else document.getElementById('empty').classList.add('hidden');
 
       blooksGrid.innerHTML='';
-      for(const b of blooks){
+      blooksSnap.forEach(doc=>{
+        const b = doc.data();
         const div = document.createElement('div'); div.className='card';
         div.innerHTML = `
           <img src="${b.image||'https://i.ibb.co/0FQG7kF/friendly-ghost.png'}" alt="${b.name}">
@@ -106,7 +112,7 @@
           <div class="rarity" style="background:${RARITY_COLORS[(b.rarity||'').toLowerCase()]||'#9aa0a6'}">${b.rarity||'Unknown'}</div>
         `;
         blooksGrid.appendChild(div);
-      }
+      });
     });
 
     document.getElementById('logoutBtn').addEventListener('click', ()=> auth.signOut().then(()=> location.href='login.html'));
