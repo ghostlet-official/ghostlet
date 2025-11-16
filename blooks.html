@@ -1,46 +1,51 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Ghostlet — Blooks</title>
 <style>
 :root{--glow:#ff6aff}
 body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee}
 .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#242444;box-shadow:0 0 12px var(--glow);border-bottom:2px solid var(--glow);position:sticky;top:0;z-index:100}
 .brand{color:var(--glow);font-weight:800;text-decoration:none}
-nav button{background:var(--glow);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:4px}
-.container{max-width:1100px;margin:12px auto;padding:0 18px}
+.topbar button{background:var(--glow);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:6px}
+.container{max-width:1100px;margin:12px auto;padding:18px}
 .h1{color:var(--glow);font-size:1.6rem;margin:12px 0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
 .card{background:#2b2b44;padding:12px;border-radius:12px;text-align:center;border:2px solid rgba(255,106,255,0.06)}
 .card img{width:100%;height:120px;object-fit:contain;border-radius:8px}
 .rarity{font-weight:800;padding:6px;border-radius:8px;margin-top:8px;display:inline-block;color:#111}
+.owned{color:#ccc;margin-top:6px}
+.small{color:#aaa;font-size:0.9rem;margin-top:8px}
+.setPfpBtn{margin-top:8px;background:#ff6aff;color:#111;border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
 .empty{color:#aaa;padding:22px;text-align:center}
-  button{background:var(--glow);border:none;color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;}
 </style>
+
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-<div class="topbar">
-  <a class="brand" href="home.html">Ghostlet</a>
-  <div>
-    <button onclick="location.href='stats.html'">Stats</button>
-    <button onclick="location.href='chat.html'">Chat</button>
-    <button onclick="location.href='market.html'">Market</button>
-    <button onclick="location.href='blooks.html'">Blooks</button>
-    <button onclick="location.href='settings.html'">Settings</button>
-    <button id="logoutBtn">Logout</button>
+  <div class="topbar">
+    <a class="brand" href="home.html">Ghostlet</a>
+    <div>
+      <button onclick="location.href='stats.html'">Stats</button>
+      <button onclick="location.href='chat.html'">Chat</button>
+      <button onclick="location.href='market.html'">Market</button>
+      <button onclick="location.href='blooks.html'">Blooks</button>
+      <button onclick="location.href='settings.html'">Settings</button>
+      <button id="logoutBtn">Logout</button>
+    </div>
   </div>
-</div>
 
-<div class="container">
-  <div class="h1">Your Blooks</div>
-  <div id="grid" class="grid"></div>
-  <div id="empty" class="empty hidden"></div>
-</div>
+  <div class="container">
+    <div class="h1">Your Blooks</div>
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty hidden">No blooks yet — open packs in the Market!</div>
+    <div class="small">Tip: Click <strong>Set as PFP</strong> to make a blook your profile picture (will appear in chat & stats).</div>
+  </div>
 
 <script>
 const firebaseConfig = {
@@ -55,30 +60,49 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-const RARITY_COLORS = { common:'#9aa0a6', uncommon:'#2ecc71', rare:'#3498db', epic:'#9b59b6', legendary:'#f1c40f', chroma:'#ff6aff'};
+document.getElementById('logoutBtn').addEventListener('click', ()=> auth.signOut().then(()=> location.href='login.html'));
 
-auth.onAuthStateChanged(async user => {
+auth.onAuthStateChanged(user=>{
   if(!user) return window.location.href='login.html';
+  const uid = user.uid;
   const grid = document.getElementById('grid');
   const empty = document.getElementById('empty');
-  const blooksSnap = await db.collection('users').doc(user.uid).collection('blooks').get();
-  grid.innerHTML = '';
-  if(blooksSnap.empty){ empty.classList.remove('hidden'); return; }
-  empty.classList.add('hidden');
-  blooksSnap.forEach(doc => {
-    const b = doc.data();
-    const div = document.createElement('div'); div.className='card';
-    div.innerHTML = `
-      <img src="${b.image||'https://i.ibb.co/0FQG7kF/friendly-ghost.png'}" alt="${b.name}">
-      <div style="margin-top:8px;font-weight:700">${b.name}</div>
-      <div class="rarity" style="background:${RARITY_COLORS[(b.rarity||'').toLowerCase()]||'#9aa0a6'}">${b.rarity||'Unknown'}</div>
-      <div style="margin-top:6px;color:#ccc">Owned: ${b.count||1}</div>
-    `;
-    grid.appendChild(div);
-  });
+
+  // Live list of blooks (structure A: doc id = blook id, contains name, rarity, image, count)
+  db.collection('users').doc(uid).collection('blooks')
+    .onSnapshot(snapshot => {
+      grid.innerHTML = '';
+      if(snapshot.empty) { empty.classList.remove('hidden'); return; } else empty.classList.add('hidden');
+
+      snapshot.forEach(doc => {
+        const b = doc.data();
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <img src="${b.image || 'https://i.ibb.co/0FQG7kF/friendly-ghost.png'}" alt="${b.name}">
+          <div style="margin-top:8px;font-weight:700">${b.name || doc.id}</div>
+          <div class="rarity" style="background:${(b.rarity?rarityColor(b.rarity):'#9aa0a6')}">${b.rarity || 'Unknown'}</div>
+          <div class="owned">Owned: ${b.count || 1}</div>
+        `;
+        // set as pfp button
+        const btn = document.createElement('button');
+        btn.className = 'setPfpBtn';
+        btn.textContent = 'Set as PFP';
+        btn.addEventListener('click', ()=>{
+          db.collection('users').doc(uid).set({ pfp: b.image || null }, { merge:true })
+            .then(()=> alert(`${b.name} is now your profile picture.`))
+            .catch(e=> alert('Failed to set PFP: '+e.message));
+        });
+        div.appendChild(btn);
+
+        // optional: remove or use blook (not included)
+        grid.appendChild(div);
+      });
+    });
 });
 
-document.getElementById('logoutBtn').addEventListener('click', ()=>auth.signOut().then(()=>window.location.href='login.html'));
+// small helper for rarity color
+function rarityColor(r){ return {common:'#9aa0a6',uncommon:'#2ecc71',rare:'#3498db',epic:'#9b59b6',legendary:'#f1c40f',chroma:'#ff6aff'}[(r||'').toLowerCase()]||'#9aa0a6'; }
 </script>
 </body>
 </html>
