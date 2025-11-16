@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Ghostlet — Blooks</title>
 <style>
 :root{--glow:#ff6aff}
@@ -11,13 +11,16 @@ body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d
 .brand{color:var(--glow);font-weight:800;text-decoration:none}
 .topbar button{background:var(--glow);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:6px}
 .container{max-width:1100px;margin:12px auto;padding:18px}
+.h1{color:var(--glow);font-size:1.6rem;margin:12px 0}
 .pack-section{margin-top:18px}
-.pack-title{font-weight:800;font-size:1.4rem;color:var(--glow);margin-bottom:8px;border-bottom:1px solid #ff6aff33;padding-bottom:4px}
-.blook-card{background:#2b2b44;padding:10px 12px;border-radius:12px;margin-bottom:6px;display:flex;align-items:center;gap:12px;border:2px solid rgba(255,106,255,0.06)}
-.blook-card img{width:50px;height:50px;object-fit:cover;border-radius:6px}
-.blook-name{flex:1;font-weight:700}
-.blook-count{font-weight:800;color:var(--glow)}
+.pack-title{font-weight:800;color:#ff6aff;font-size:1.2rem;margin-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.card{background:#2b2b44;padding:12px;border-radius:12px;text-align:center;border:2px solid rgba(255,106,255,0.06)}
+.card img{width:100%;height:120px;object-fit:contain;border-radius:8px}
+.rarity{font-weight:800;padding:6px;border-radius:8px;margin-top:8px;display:inline-block;color:#111}
+.empty{color:#aaa;padding:22px;text-align:center}
 </style>
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -36,8 +39,9 @@ body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d
 </div>
 
 <div class="container">
-  <h1 style="color:var(--glow)">Your Blooks</h1>
+  <div class="h1">Your Blooks</div>
   <div id="blooksContainer"></div>
+  <div id="empty" class="empty hidden">You don't have any Blooks yet!</div>
 </div>
 
 <script>
@@ -55,48 +59,73 @@ const db = firebase.firestore();
 
 document.getElementById('logoutBtn').addEventListener('click', ()=> auth.signOut().then(()=> location.href='login.html'));
 
-const PACK_ORDER = ['OG','Spooky','Holiday','Emoji'];
-auth.onAuthStateChanged(async user=>{
-  if(!user) return window.location.href='login.html';
+const RARITY_COLORS = { common:'#9aa0a6', uncommon:'#2ecc71', rare:'#3498db', epic:'#9b59b6', legendary:'#f1c40f', chroma:'#ff6aff' };
+
+auth.onAuthStateChanged(user => {
+  if(!user) return window.location.href = 'login.html';
   const uid = user.uid;
 
   db.collection('users').doc(uid).collection('blooks')
-    .onSnapshot(snapshot=>{
-      const blooksByPack = {};
-      snapshot.forEach(doc=>{
+    .onSnapshot(snapshot => {
+      const blooks = [];
+      snapshot.forEach(doc => {
         const data = doc.data();
-        const pack = data.packName || 'Other';
-        if(!blooksByPack[pack]) blooksByPack[pack] = [];
-        blooksByPack[pack].push(data);
+        blooks.push({
+          id: data.id,
+          name: data.name,
+          rarity: data.rarity,
+          image: data.image,
+          packName: data.packName || "Unknown Pack",
+          count: data.count || 1
+        });
       });
 
-      const container = document.getElementById('blooksContainer');
-      container.innerHTML = '';
-
-      // Display packs in specific order
-      PACK_ORDER.forEach(pack=>{
-        if(blooksByPack[pack]){
-          const section = document.createElement('div');
-          section.className = 'pack-section';
-          const title = document.createElement('div');
-          title.className = 'pack-title';
-          title.textContent = pack;
-          section.appendChild(title);
-
-          blooksByPack[pack].forEach(blook=>{
-            const card = document.createElement('div');
-            card.className = 'blook-card';
-            card.innerHTML = `<img src="${blook.image}" alt="${blook.name}">
-                              <div class="blook-name">${blook.name}</div>
-                              <div class="blook-count">x${blook.count || 1}</div>`;
-            section.appendChild(card);
-          });
-
-          container.appendChild(section);
-        }
-      });
+      renderBlooks(blooks);
     });
 });
+
+function renderBlooks(blooks){
+  const container = document.getElementById('blooksContainer');
+  container.innerHTML = '';
+  if(blooks.length === 0){
+    document.getElementById('empty').classList.remove('hidden');
+    return;
+  } else {
+    document.getElementById('empty').classList.add('hidden');
+  }
+
+  // Group by pack
+  const grouped = {};
+  for(const b of blooks){
+    if(!grouped[b.packName]) grouped[b.packName] = [];
+    grouped[b.packName].push(b);
+  }
+
+  for(const pack in grouped){
+    const section = document.createElement('div');
+    section.className = 'pack-section';
+    const title = document.createElement('div');
+    title.className = 'pack-title';
+    title.textContent = pack;
+    section.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    for(const b of grouped[pack]){
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML = `
+        <img src="${b.image || 'https://i.ibb.co/0FQG7kF/friendly-ghost.png'}" alt="${b.name}">
+        <div style="margin-top:8px;font-weight:700">${b.name}</div>
+        <div class="rarity" style="background:${RARITY_COLORS[b.rarity?.toLowerCase()] || '#9aa0a6'}">${b.rarity || 'Unknown'}</div>
+        <div style="margin-top:6px;color:#ccc">Owned: ${b.count}</div>
+      `;
+      grid.appendChild(div);
+    }
+    section.appendChild(grid);
+    container.appendChild(section);
+  }
+}
 </script>
 </body>
 </html>
