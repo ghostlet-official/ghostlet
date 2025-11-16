@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ghostlet — Chat</title>
+<style>
+  :root{--glow:#ff6aff}
+  body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee}
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#242444;box-shadow:0 0 12px var(--glow);border-bottom:2px solid var(--glow);position:sticky;top:0;z-index:100}
+  .brand{color:var(--glow);font-weight:800;text-decoration:none}
+  nav button{background:var(--glow);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:4px}
+  .container{max-width:700px;margin:20px auto;padding:0 18px;display:flex;flex-direction:column;gap:12px}
+  #messages{flex:1;overflow-y:auto;background:#1a1a2e;padding:12px;border-radius:12px;min-height:400px;display:flex;flex-direction:column;gap:8px}
+  #messages .message{padding:6px 10px;background:#2b2b44;border-radius:10px;display:flex;align-items:center;gap:8px}
+  #messages .message img{width:32px;height:32px;border-radius:50%}
+  #inputArea{display:flex;gap:6px;margin-top:6px}
+  #msgInput{flex:1;padding:10px;border-radius:8px;border:none}
+  #sendBtn{padding:10px 14px;border-radius:8px;background:var(--glow);color:#fff;border:none;cursor:pointer}
+</style>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="home.html">Ghostlet</a>
+  <div>
+    <button onclick="location.href='stats.html'">Stats</button>
+    <button onclick="location.href='chat.html'">Chat</button>
+    <button onclick="location.href='market.html'">Market</button>
+    <button onclick="location.href='blooks.html'">Blooks</button>
+    <button onclick="location.href='settings.html'">Settings</button>
+    <button onclick="location.href='admin.html'">Admin</button>
+    <button id="logoutBtn">Logout</button>
+  </div>
+</div>
+
+<div class="container">
+  <div id="messages"></div>
+  <div id="inputArea">
+    <input id="msgInput" placeholder="Type a message..." />
+    <button id="sendBtn">Send</button>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
+  authDomain: "ghostlet-98357.firebaseapp.com",
+  projectId: "ghostlet-98357",
+  storageBucket: "ghostlet-98357.appspot.com",
+  messagingSenderId: "843012219969",
+  appId: "1:843012219969:web:9e3037578726debf2212c0"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const logoutBtn = document.getElementById('logoutBtn');
+logoutBtn.addEventListener('click', ()=> auth.signOut().then(()=> location.href='login.html'));
+
+auth.onAuthStateChanged(user=>{
+  if(!user) location.href='login.html';
+});
+
+const messagesDiv = document.getElementById('messages');
+const msgInput = document.getElementById('msgInput');
+const sendBtn = document.getElementById('sendBtn');
+
+sendBtn.addEventListener('click', async ()=>{
+  const user = auth.currentUser;
+  if(!user) return;
+  const text = msgInput.value.trim();
+  if(!text) return;
+  const userRef = db.collection('users').doc(user.uid);
+  const doc = await userRef.get();
+  const data = doc.exists ? doc.data() : {};
+  await db.collection('messages').add({
+    uid: user.uid,
+    username: data.displayName||'Anonymous',
+    profilePic: data.profilePic||'https://i.ibb.co/0FQG7kF/friendly-ghost.png',
+    text,
+    sentAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  msgInput.value='';
+});
+
+db.collection('messages').orderBy('sentAt').onSnapshot(snapshot=>{
+  messagesDiv.innerHTML='';
+  snapshot.forEach(doc=>{
+    const m = doc.data();
+    const div = document.createElement('div');
+    div.className='message';
+    div.innerHTML = `<img src="${m.profilePic}" alt="${m.username}"><strong>${m.username}</strong>: ${m.text}`;
+    messagesDiv.appendChild(div);
+  });
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+});
+</script>
+</body>
+</html>
