@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ghostlet — Market</title>
+<style>
+:root{--glow:#ff6aff}
+body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#242444;box-shadow:0 0 12px var(--glow);border-bottom:2px solid var(--glow);position:sticky;top:0;z-index:100}
+.brand{color:var(--glow);font-weight:800;text-decoration:none}
+nav button{background:var(--glow);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:4px}
+.container{max-width:1100px;margin:12px auto;padding:0 18px}
+.h1{color:var(--glow);font-size:1.6rem;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:12px}
+.pack-card{background:linear-gradient(180deg,#20203a,#23233e);border-radius:12px;padding:14px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,0.6);cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent}
+.pack-card:hover{transform:translateY(-6px) scale(1.01);border-color:rgba(255,106,255,0.12)}
+.pack-thumb{width:120px;height:120px;object-fit:contain;margin:8px auto;display:block}
+.pack-title{color:#fff;font-weight:700;margin-top:8px}
+.pack-sub{color:#ccc;font-size:.9rem;margin-top:4px}
+.pack-overlay{position:fixed;inset:0;background:rgba(4,6,20,0.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:9999}
+.pack-popup{width:420px;max-width:calc(100% - 40px);aspect-ratio:1/1;background:radial-gradient(ellipse at 50% 10%, rgba(255,106,255,0.06), rgba(0,0,0,0.35));border-radius:14px;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,0.6),0 0 18px #ff6aff33;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;user-select:none;overflow:visible}
+.pack-graphic{width:60%;height:60%;object-fit:contain;transition:transform 700ms cubic-bezier(.2,.9,.2,1),opacity 350ms;z-index:5;pointer-events:none}
+.blook-card{position:absolute;width:44%;height:44%;object-fit:contain;transform:scale(0) rotate(0deg);opacity:0;transition:transform 1000ms cubic-bezier(.18,.9,.2,1),opacity 400ms;z-index:10;pointer-events:none;filter:drop-shadow(0 8px 18px rgba(0,0,0,0.6));border-radius:8px;background:transparent}
+.blook-card.reveal{transform:scale(1) rotate(720deg);opacity:1}
+.blook-meta{position:absolute;bottom:14px;width:100%;text-align:center;color:#ddd;font-weight:700;z-index:11;font-family:"Segoe UI",Arial,sans-serif;text-shadow:0 2px 10px rgba(0,0,0,0.75);pointer-events:none}
+.pack-hint{position:absolute;top:12px;right:16px;color:#ffb6ff;font-weight:700;z-index:12;font-family:"Segoe UI",Arial,sans-serif}
+.toast{position:fixed;right:20px;bottom:20px;background:rgba(0,0,0,0.6);color:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.6);font-weight:700;z-index:10000}
+.hidden{display:none}
+button{background:var(--glow);border:none;color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;}
+</style>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="home.html">Ghostlet</a>
+  <div>
+    <button onclick="location.href='stats.html'">Stats</button>
+    <button onclick="location.href='chat.html'">Chat</button>
+    <button onclick="location.href='market.html'">Market</button>
+    <button onclick="location.href='blooks.html'">Blooks</button>
+    <button onclick="location.href='settings.html'">Settings</button>
+    <button id="logoutBtn">Logout</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="h1">Market — Packs</div>
+  <div id="packsGrid" class="grid" aria-live="polite"></div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
+  authDomain: "ghostlet-98357.firebaseapp.com",
+  projectId: "ghostlet-98357",
+  storageBucket: "ghostlet-98357.appspot.com",
+  messagingSenderId: "843012219969",
+  appId: "1:843012219969:web:9e3037578726debf2212c0"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* ==== Packs Data ==== */
+const PACKS = [
+  {
+    id: "spooky_pack",
+    name: "Spooky Pack",
+    image: "https://i.ibb.co/7rXxLxk/spooky-pack.png",
+    blooks: [
+      { id:"ghost_001", name:"Friendly Ghost", rarity:"Common", image:"https://i.ibb.co/0FQG7kF/frieindly-ghost.png", weight:50 },
+      { id:"cookie_001", name:"Haunted Cookie", rarity:"Uncommon", image:"https://i.ibb.co/fdH9x8x/hiaunted-cookie.png", weight:25 },
+      { id:"moon_001", name:"Crescent Moon", rarity:"Rare", image:"https://i.ibb.co/NV8Lkk6/crescent-moion.png", weight:15 },
+      { id:"phantom_001", name:"Dark Phantom", rarity:"Epic", image:"https://i.ibb.co/wrgvXc0/spooky-phanitom.png", weight:7 },
+      { id:"pumpkin_001", name:"Pumpkin Spirit", rarity:"Legendary", image:"https://i.ibb.co/gTT1QWq/pumipkin-spirit.png", weight:3 },
+      { id:"specter_001", name:"Glowing Specter", rarity:"Chroma", image:"https://i.ibb.co/KV9h7dD/glowinog-specter.png", weight:1 }
+    ]
+  }
+];
+
+/* ==== Helpers ==== */
+function rarityColor(r){ return {common:'#9aa0a6',uncommon:'#2ecc71',rare:'#3498db',epic:'#9b59b6',legendary:'#f1c40f',chroma:'#ff6aff'}[r.toLowerCase()]||'#9aa0a6'; }
+function showToast(msg,t=2400){ const toast=document.getElementById('toast'); toast.textContent=msg; toast.classList.remove('hidden'); clearTimeout(toast._hid); toast._hid=setTimeout(()=>toast.classList.add('hidden'),t); }
+function pickWeighted(blooks){ let sum=0; blooks.forEach(b=>sum+=b.weight||1); let r=Math.random()*sum; for(const b of blooks){ r-=(b.weight||1); if(r<=0) return b; } return blooks[blooks.length-1]; }
+
+/* ==== Render Packs ==== */
+const packsGrid = document.getElementById('packsGrid');
+function renderPacks(){
+  packsGrid.innerHTML='';
+  for(const p of PACKS){
+    const div=document.createElement('div');
+    div.className='pack-card';
+    div.innerHTML=`
+      <img class="pack-thumb" src="${p.image}" alt="${p.name}">
+      <div class="pack-title">${p.name}</div>
+      <div class="pack-sub">${p.blooks.length} blooks inside</div>
+    `;
+    div.addEventListener('click',()=>openPackPopup(p));
+    packsGrid.appendChild(div);
+  }
+}
+renderPacks();
+
+/* ==== Open Pack Popup ==== */
+async function openPackPopup(pack){
+  const user = auth.currentUser;
+  if(!user){ showToast('Login to open packs'); return; }
+
+  const overlay=document.createElement('div'); overlay.className='pack-overlay';
+  const popup=document.createElement('div'); popup.className='pack-popup'; overlay.appendChild(popup);
+
+  const hint=document.createElement('div'); hint.className='pack-hint'; hint.textContent='Tap to open'; popup.appendChild(hint);
+
+  const packImg=document.createElement('img'); packImg.className='pack-graphic'; packImg.src=pack.image; popup.appendChild(packImg);
+
+  const blookImg=document.createElement('img'); blookImg.className='blook-card'; popup.appendChild(blookImg);
+
+  const meta=document.createElement('div'); meta.className='blook-meta'; meta.style.display='none'; popup.appendChild(meta);
+
+  document.body.appendChild(overlay);
+
+  let state='idle'; let selected=null;
+
+  overlay.addEventListener('click', async()=>{
+    if(state==='idle'){
+      selected=pickWeighted(pack.blooks);
+      blookImg.src=selected.image;
+      meta.textContent=`${selected.name} • ${selected.rarity}`; meta.style.display='block';
+      blookImg.classList.add('reveal'); hint.textContent='Tap to continue';
+      state='revealed';
+      return;
+    }
+    if(state==='revealed'){
+      // Save Blook to Firestore
+      const blookRef = db.collection('users').doc(user.uid).collection('blooks').doc(selected.id);
+      await blookRef.set({
+        name:selected.name,
+        image:selected.image,
+        rarity:selected.rarity,
+        count: firebase.firestore.FieldValue.increment(1)
+      }, { merge:true });
+      overlay.remove();
+      showToast(`${selected.name} added to collection`);
+    }
+  });
+}
+</script>
+</body>
+</html>
