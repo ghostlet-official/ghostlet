@@ -6,46 +6,63 @@
 <title>Ghostlet — Chat</title>
 <style>
   :root{--glow:#ff6aff}
-  body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee;display:flex;flex-direction:column;height:100vh}
-  .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#242444;box-shadow:0 0 12px var(--glow);border-bottom:2px solid var(--glow);position:sticky;top:0;z-index:100}
+  body{margin:0;font-family:Segoe UI,Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee;display:flex;flex-direction:column;min-height:100vh}
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#242444;box-shadow:0 0 12px var(--glow);border-bottom:2px solid var(--glow);z-index:30}
   .brand{color:var(--glow);font-weight:800;text-decoration:none}
-  .topbar button{background:var(--glow);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:4px}
-  #messages{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column-reverse}
-  .message{background:#2b2b44;margin:6px 0;padding:10px;border-radius:12px;display:flex;align-items:center;max-width:80%}
-  .message img{width:36px;height:36px;border-radius:50%;margin-right:8px}
-  .message .content{display:flex;flex-direction:column}
-  .message .name{font-weight:700;color:#ff6aff}
-  #inputContainer{display:flex;padding:12px;border-top:2px solid var(--glow)}
-  #msgInput{flex:1;padding:10px;border-radius:8px;border:none;background:#2b2b44;color:#eee;margin-right:6px}
-  #sendBtn{padding:10px 14px;border-radius:8px;border:none;background:var(--glow);color:#fff;cursor:pointer}
+  .topbar .nav { display:flex; gap:8px; align-items:center; }
+  .topbar button{background:var(--glow);border:none;color:#111;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:700}
+  .container{max-width:900px;margin:18px auto;padding:12px;flex:1;display:flex;flex-direction:column;gap:12px;width:100%}
+  #chatWrap{background:#2b2b44;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:12px;flex:1;min-height:420px;overflow:hidden}
+  #messages{flex:1;overflow:auto;padding:6px;display:flex;flex-direction:column;gap:8px}
+  .msg-row{display:flex;gap:10px;align-items:flex-start;max-width:100%}
+  .avatar{width:44px;height:44px;border-radius:10px;flex:0 0 44px;background:#111;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid rgba(255,106,255,0.12)}
+  .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+  .msg-body{background:linear-gradient(180deg,#24243a,#28283f);padding:10px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.4);flex:1;word-break:break-word}
+  .msg-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .msg-name{font-weight:800;color:var(--glow)}
+  .msg-badge{background:#ff6aff22;color:#ffb7ff;padding:3px 8px;border-radius:6px;font-weight:700;font-size:.8rem;border:1px solid #ff6aff55}
+  .msg-time{color:#aaa;font-size:.75rem;margin-left:auto}
+  .msg-text{color:#eee;line-height:1.35}
+  .input-row{display:flex;gap:8px;align-items:center;margin-top:8px}
+  #msgInput{flex:1;padding:12px;border-radius:10px;border:2px solid #222;background:#111;color:#fff;outline:none;font-size:1rem}
+  #sendBtn{background:var(--glow);border:none;color:#111;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:800}
+  .muted-note{color:#f99;margin-top:6px}
+  .small{color:#aaa;font-size:.85rem}
 </style>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-<div class="topbar">
-  <a class="brand" href="home.html">Ghostlet</a>
-  <div>
-    <button onclick="location.href='stats.html'">Stats</button>
-    <button onclick="location.href='chat.html'">Chat</button>
-    <button onclick="location.href='market.html'">Market</button>
-    <button onclick="location.href='blooks.html'">Blooks</button>
-    <button onclick="location.href='settings.html'">Settings</button>
-    <button onclick="location.href='admin.html'">Admin</button>
-    <button id="logoutBtn">Logout</button>
+  <div class="topbar">
+    <a class="brand" href="home.html">Ghostlet</a>
+    <div class="nav">
+      <button onclick="location.href='stats.html'">Stats</button>
+      <button onclick="location.href='market.html'">Market</button>
+      <button onclick="location.href='blooks.html'">Blooks</button>
+      <button onclick="location.href='settings.html'">Settings</button>
+      <button id="logoutBtn">Logout</button>
+    </div>
   </div>
-</div>
 
-<div id="messages"></div>
+  <div class="container">
+    <div id="chatWrap">
+      <div id="messages" aria-live="polite"></div>
 
-<div id="inputContainer">
-  <input type="text" id="msgInput" placeholder="Type your message..." />
-  <button id="sendBtn">Send</button>
-</div>
+      <div class="input-row">
+        <input id="msgInput" placeholder="Type a message..." autocomplete="off" />
+        <button id="sendBtn">Send</button>
+      </div>
+      <div id="mutedNote" class="muted-note" style="display:none">You are muted — you can view messages but cannot send.</div>
+    </div>
+
+    <div class="small">Tip: Click <strong>Settings → Set display name</strong> to change how your name appears in chat.</div>
+  </div>
 
 <script>
+/* ---------- Firebase config (your project) ---------- */
 const firebaseConfig = {
   apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
   authDomain: "ghostlet-98357.firebaseapp.com",
@@ -58,67 +75,147 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Logout button
-document.getElementById('logoutBtn').addEventListener('click', ()=>{
-  auth.signOut().then(()=> location.href='login.html');
+/* ---------- UI elements ---------- */
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('msgInput');
+const sendBtn = document.getElementById('sendBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const mutedNote = document.getElementById('mutedNote');
+
+logoutBtn.addEventListener('click', ()=> auth.signOut().then(()=> location.href='login.html').catch(()=>{}));
+
+/* ---------- Helpers ---------- */
+function escapeHtml(s){ return String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+function formatTime(ts){
+  if(!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleString();
+}
+
+/* ---------- Authentication & profile ---------- */
+let currentUser = null;
+let currentProfile = { displayName: 'Ghostlet User', pfp: '', badges: [] };
+let chatUnsub = null;
+
+auth.onAuthStateChanged(async user => {
+  currentUser = user;
+  if(!user){
+    // not signed in → redirect to login
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // load user's profile from users/{uid}
+  const userRef = db.collection('users').doc(user.uid);
+  const userDoc = await userRef.get();
+  if(userDoc.exists){
+    const data = userDoc.data();
+    currentProfile.displayName = data.displayName || data.username || user.displayName || 'Ghostlet User';
+    currentProfile.pfp = data.pfp || data.profilePic || 'https://i.ibb.co/0FQG7kF/friendly-ghost.png';
+    currentProfile.badges = Array.isArray(data.badges) ? data.badges : [];
+    // show muted/banned if present
+    if(data.muted) { mutedNote.style.display = 'block'; inputEl.disabled = true; sendBtn.disabled = true; } else { mutedNote.style.display='none'; inputEl.disabled=false; sendBtn.disabled=false; }
+  } else {
+    // default fallback
+    currentProfile.displayName = user.displayName || 'Ghostlet User';
+    currentProfile.pfp = 'https://i.ibb.co/0FQG7kF/friendly-ghost.png';
+    currentProfile.badges = [];
+  }
+
+  // start listening to chat (limit last 200)
+  if(chatUnsub) chatUnsub(); // remove previous
+  chatUnsub = db.collection('chat').orderBy('timestamp','asc').limitToLast(500).onSnapshot(snap => {
+    renderMessages(snap);
+  });
 });
 
-// Check login
-let currentUserData = null;
-auth.onAuthStateChanged(user=>{
-  if(!user) location.href='login.html';
-  else loadUserData(user.uid);
-});
+/* ---------- Render messages ---------- */
+function renderMessages(snapshot){
+  // Clear and append; keep a simple scroll to bottom behavior
+  messagesEl.innerHTML = '';
+  const docs = [];
+  snapshot.forEach(d => docs.push({ id: d.id, ...d.data() }));
+  // show newest at bottom (already ascending)
+  for(const m of docs){
+    const row = document.createElement('div');
+    row.className = 'msg-row';
+    const avatar = document.createElement('div'); avatar.className = 'avatar';
+    const img = document.createElement('img');
+    img.src = m.pfp || 'https://i.ibb.co/0FQG7kF/friendly-ghost.png';
+    img.alt = m.displayName || 'User';
+    avatar.appendChild(img);
 
-function loadUserData(uid){
-  db.collection('users').doc(uid).get().then(doc=>{
-    if(doc.exists){
-      currentUserData = doc.data();
-      setupChatListener();
+    const body = document.createElement('div'); body.className = 'msg-body';
+    const head = document.createElement('div'); head.className = 'msg-head';
+    const name = document.createElement('div'); name.className = 'msg-name'; name.textContent = m.displayName || 'Ghostlet User';
+    head.appendChild(name);
+    if(Array.isArray(m.badges) && m.badges.length){
+      const b = document.createElement('div'); b.className = 'msg-badge'; b.textContent = m.badges[0]; head.appendChild(b);
     }
-  });
+    const time = document.createElement('div'); time.className = 'msg-time'; time.textContent = formatTime(m.timestamp);
+    head.appendChild(time);
+
+    const text = document.createElement('div'); text.className = 'msg-text';
+    text.innerHTML = escapeHtml(m.text);
+
+    body.appendChild(head);
+    body.appendChild(text);
+
+    row.appendChild(avatar);
+    row.appendChild(body);
+
+    messagesEl.appendChild(row);
+  }
+  // scroll to bottom
+  messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-// Listen to messages in real-time
-function setupChatListener(){
-  const messagesDiv = document.getElementById('messages');
-  db.collection('chat').orderBy('timestamp','desc').limit(50)
-    .onSnapshot(snapshot=>{
-      messagesDiv.innerHTML = '';
-      snapshot.forEach(doc=>{
-        const msg = doc.data();
-        const div = document.createElement('div');
-        div.className = 'message';
-        div.innerHTML = `
-          <img src="${msg.profilePic || 'https://i.ibb.co/0FQG7kF/friendly-ghost.png'}" alt="Profile">
-          <div class="content">
-            <span class="name">${msg.displayName || 'Ghostlet User'}</span>
-            <span>${msg.text}</span>
-          </div>
-        `;
-        messagesDiv.appendChild(div);
-      });
-    });
+/* ---------- Send message ---------- */
+async function sendMessage(){
+  const text = inputEl.value.trim();
+  if(!text) return;
+  if(!currentUser) { alert('Sign in to send'); return; }
+
+  sendBtn.disabled = true;
+  inputEl.disabled = true;
+
+  try{
+    // Re-read user doc to get the latest pfp / displayName / badges
+    const userRef = db.collection('users').doc(currentUser.uid);
+    const doc = await userRef.get();
+    const u = doc.exists ? doc.data() : {};
+
+    const messagePayload = {
+      uid: currentUser.uid,
+      displayName: u.displayName || u.username || currentProfile.displayName || 'Ghostlet User',
+      pfp: u.pfp || u.profilePic || currentProfile.pfp || 'https://i.ibb.co/0FQG7kF/friendly-ghost.png',
+      badges: u.badges || currentProfile.badges || [],
+      text,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    await db.collection('chat').add(messagePayload);
+
+    // increment messagesSent counter on user doc
+    userRef.set({ messagesSent: firebase.firestore.FieldValue.increment(1) }, { merge:true }).catch(()=>{});
+
+    inputEl.value = '';
+  }catch(e){
+    console.error('Send failed', e);
+    alert('Failed to send message.');
+  } finally {
+    sendBtn.disabled = false;
+    inputEl.disabled = false;
+    inputEl.focus();
+  }
 }
 
-// Send message
-document.getElementById('sendBtn').addEventListener('click', sendMessage);
-document.getElementById('msgInput').addEventListener('keypress', e=>{
-  if(e.key === 'Enter') sendMessage();
-});
+sendBtn.addEventListener('click', sendMessage);
+inputEl.addEventListener('keypress', (e)=> { if(e.key === 'Enter') sendMessage(); });
 
-function sendMessage(){
-  const text = document.getElementById('msgInput').value.trim();
-  if(!text || !currentUserData) return;
-  db.collection('chat').add({
-    uid: auth.currentUser.uid,
-    displayName: currentUserData.displayName || 'Ghostlet User',
-    profilePic: currentUserData.profilePic || '',
-    text,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  document.getElementById('msgInput').value = '';
-}
+/* ---------- accessibility: focus input ---------- */
+inputEl.focus();
+
 </script>
 </body>
 </html>
