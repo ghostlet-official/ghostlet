@@ -1,153 +1,208 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ghostlet — Stats</title>
-<style>
-:root{--glow:#ff6aff}
-body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee}
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#242444;box-shadow:0 0 12px var(--glow);border-bottom:2px solid var(--glow);position:sticky;top:0;z-index:100}
-.brand{color:var(--glow);font-weight:800;text-decoration:none}
-.topbar button{background:var(--glow);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:6px}
-.container{max-width:1100px;margin:12px auto;padding:18px}
-.profile-card{display:flex;align-items:center;gap:16px;background:#2b2b44;padding:14px;border-radius:12px;border:2px solid rgba(255,106,255,0.06)}
-.profile-card img{width:88px;height:88px;border-radius:50%;object-fit:cover}
-.profile-info{flex:1}
-.username{font-weight:800;font-size:1.4rem;color:var(--glow)}
-.badges{margin-top:6px}
-.badges span{display:inline-block;background:#ff6aff22;color:#ffb7ff;padding:4px 8px;border-radius:8px;margin-right:6px;font-weight:700;border:1px solid #ff6aff55}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:18px}
-.stat-card{background:#2b2b44;padding:14px;border-radius:12px;text-align:center;border:2px solid rgba(255,106,255,0.04)}
-.stat-card .label{color:#ccc;font-weight:700;margin-bottom:8px;display:block}
-.stat-card .value{font-weight:900;font-size:1.4rem}
-.link-row{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
-</style>
 
-<!-- Firebase -->
+<style>
+  :root { --glow:#ff6aff }
+
+  body {
+    margin:0;
+    font-family:'Segoe UI', sans-serif;
+    background:linear-gradient(180deg,#0d0d1a,#1a1a2e);
+    color:#eee;
+  }
+
+  .topbar {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 18px;
+    background:#2b2b44;
+    box-shadow:0 0 12px var(--glow);
+    border-bottom:2px solid var(--glow);
+    position:sticky;
+    top:0;
+    z-index:100;
+  }
+  .brand { color:var(--glow); font-weight:800; text-decoration:none }
+
+  button {
+    background:var(--glow);
+    border:none;
+    color:#fff;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    margin-left:6px;
+  }
+
+  .container {
+    max-width:900px;
+    margin:40px auto;
+    padding:0 20px;
+  }
+
+  .profile-section {
+    display:flex;
+    align-items:center;
+    background:#2b2b44;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 0 12px #0008;
+    border:2px solid #ff6aff33;
+  }
+
+  .pfp {
+    width:110px;
+    height:110px;
+    border-radius:12px;
+    background:#111;
+    border:2px solid var(--glow);
+    object-fit:contain;
+    margin-right:20px;
+  }
+
+  .username {
+    font-size:1.9rem;
+    font-weight:800;
+    color:var(--glow);
+  }
+
+  .badges {
+    margin-top:6px;
+  }
+
+  .badge {
+    display:inline-block;
+    background:#444;
+    padding:6px 10px;
+    border-radius:8px;
+    margin-right:6px;
+    font-size:0.85rem;
+    border:1px solid #777;
+  }
+
+  .stats-box {
+    margin-top:25px;
+    background:#2b2b44;
+    padding:20px;
+    border-radius:12px;
+    border:2px solid #ff6aff33;
+    box-shadow:0 0 12px #0008;
+  }
+
+  .stat {
+    font-size:1.3rem;
+    margin-bottom:10px;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="topbar">
+  <a class="brand" href="home.html">Ghostlet</a>
+  <div>
+    <button onclick="location.href='stats.html'">Stats</button>
+    <button onclick="location.href='chat.html'">Chat</button>
+    <button onclick="location.href='market.html'">Market</button>
+    <button onclick="location.href='blooks.html'">Blooks</button>
+    <button onclick="location.href='settings.html'">Settings</button>
+    <button id="logoutBtn">Logout</button>
+  </div>
+</div>
+
+
+<div class="container">
+
+  <!-- USER PROFILE -->
+  <div class="profile-section">
+    <img id="pfp" class="pfp" src="https://i.ibb.co/0FQG7kF/friendly-ghost.png">
+    
+    <div>
+      <div id="username" class="username">Loading...</div>
+      <div id="badges" class="badges"></div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-box">
+    <div class="stat">Tokens: <span id="tokens">0</span></div>
+    <div class="stat">Packs Opened: <span id="packsOpened">0</span></div>
+    <div class="stat">Blooks Owned: <span id="blooksOwned">0</span></div>
+    <div class="stat">Messages Sent: <span id="messagesSent">0</span></div>
+  </div>
+
+</div>
+
+
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-</head>
-<body>
-  <div class="topbar">
-    <a class="brand" href="home.html">Ghostlet</a>
-    <div>
-      <button onclick="location.href='stats.html'">Stats</button>
-      <button onclick="location.href='chat.html'">Chat</button>
-      <button onclick="location.href='market.html'">Market</button>
-      <button onclick="location.href='blooks.html'">Blooks</button>
-      <button onclick="location.href='settings.html'">Settings</button>
-      <button id="logoutBtn">Logout</button>
-    </div>
-  </div>
-
-  <div class="container">
-    <div id="profileCard" class="profile-card">
-      <img id="pfp" src="https://i.ibb.co/0FQG7kF/friendly-ghost.png" alt="PFP">
-      <div class="profile-info">
-        <div class="username" id="username">Loading…</div>
-        <div class="badges" id="badges"></div>
-        <div style="color:#aaa;margin-top:6px" id="uidText"></div>
-      </div>
-      <div style="text-align:right">
-        <button onclick="location.href='blooks.html'">Manage Blooks</button>
-        <button id="editSettings" style="margin-top:8px" onclick="location.href='settings.html'">Settings</button>
-      </div>
-    </div>
-
-    <div class="stats-grid" id="statsGrid">
-      <div class="stat-card">
-        <div class="label">Tokens</div>
-        <div class="value" id="tokens">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Packs Opened</div>
-        <div class="value" id="packsOpened">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Blooks Owned (total)</div>
-        <div class="value" id="blooksOwned">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="label">Messages Sent</div>
-        <div class="value" id="messagesSent">0</div>
-      </div>
-    </div>
-
-    <div class="link-row">
-      <button onclick="location.href='market.html'">Open Packs</button>
-      <button onclick="location.href='chat.html'">Go to Chat</button>
-    </div>
-  </div>
 
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
   authDomain: "ghostlet-98357.firebaseapp.com",
   projectId: "ghostlet-98357",
-  storageBucket: "ghostlet-98357.appspot.com",
+  storageBucket: "ghostlet-98357.firebasestorage.app",
   messagingSenderId: "843012219969",
   appId: "1:843012219969:web:9e3037578726debf2212c0"
 };
+
 firebase.initializeApp(firebaseConfig);
+
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-document.getElementById('logoutBtn').addEventListener('click', ()=> auth.signOut().then(()=> location.href='login.html'));
-
-// Utility to render badges (array of strings)
-function renderBadges(badges){
-  const el = document.getElementById('badges');
-  el.innerHTML = '';
-  if(!Array.isArray(badges) || badges.length===0) return;
-  for(const b of badges){
-    const span = document.createElement('span');
-    span.textContent = b;
-    el.appendChild(span);
+auth.onAuthStateChanged(async (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
   }
-}
 
-// When logged in, subscribe to user's data and collections
-auth.onAuthStateChanged(async user=>{
-  if(!user) return window.location.href = 'login.html';
-  const uid = user.uid;
-  document.getElementById('uidText').textContent = uid;
+  const ref = db.collection("users").doc(user.uid);
+  const snap = await ref.get();
 
-  // Listen to user doc real-time (for username, tokens, badges, pfp)
-  const userRef = db.collection('users').doc(uid);
-  userRef.onSnapshot(async doc => {
-    const data = doc.exists ? doc.data() : {};
-    document.getElementById('username').textContent = data.displayName || user.displayName || user.email || 'Ghostlet User';
-    document.getElementById('pfp').src = data.pfp || data.profilePic || 'https://i.ibb.co/0FQG7kF/friendly-ghost.png';
-    document.getElementById('tokens').textContent = (data.tokens || 0);
-    renderBadges(data.badges || []);
-  });
+  if (!snap.exists) return;
 
-  // Packs opened count (we store a doc per pack opened in users/{uid}/packsOpened)
-  db.collection('users').doc(uid).collection('packsOpened')
-    .onSnapshot(snap => {
-      document.getElementById('packsOpened').textContent = snap.size;
+  const u = snap.data();
+
+  // ⁃––––––– PROFILE ––––––––
+  document.getElementById("username").textContent = u.username;
+  document.getElementById("pfp").src = u.pfp || "https://i.ibb.co/0FQG7kF/friendly-ghost.png";
+
+  // Badges
+  const badges = document.getElementById("badges");
+  if (u.badges && u.badges.length > 0) {
+    u.badges.forEach(b => {
+      const badge = document.createElement("div");
+      badge.className = "badge";
+      badge.textContent = b;
+      badges.appendChild(badge);
     });
+  }
 
-  // Blooks owned: sum of all counts in users/{uid}/blooks
-  db.collection('users').doc(uid).collection('blooks')
-    .onSnapshot(snap => {
-      let total = 0;
-      snap.forEach(doc => {
-        const d = doc.data();
-        total += (d.count || 1);
-      });
-      document.getElementById('blooksOwned').textContent = total;
-    });
+  // ⁃––––––– STATS ––––––––
+  document.getElementById("tokens").textContent = u.tokens || 0;
+  document.getElementById("packsOpened").textContent = u.packsOpened || 0;
+  document.getElementById("blooksOwned").textContent = u.blooks ? u.blooks.length : 0;
+  document.getElementById("messagesSent").textContent = u.messagesSent || 0;
 
-  // Messages sent: count chat docs where uid == user.uid
-  // Note: For real-time update, we can listen to query snapshot
-  db.collection('chat').where('uid','==',uid)
-    .onSnapshot(snap => {
-      document.getElementById('messagesSent').textContent = snap.size;
-    });
 });
+
+// Logout
+document.getElementById("logoutBtn").onclick = () => {
+  auth.signOut();
+  window.location.href = "login.html";
+};
+
 </script>
+
 </body>
 </html>
