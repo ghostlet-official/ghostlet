@@ -151,6 +151,10 @@ async function openPackPopup(pack){
       overlay.remove();
       showToast(`${selected.name} added to collection`);
     }
+
+    users/{uid}/packsOpened/{docId} => {packId, openedAt: timestamp}
+users/{uid}/blooks/{blookId} => {name, rarity, image, obtainedAt: timestamp}
+  }
   });
 }
 </script>
