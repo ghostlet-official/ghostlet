@@ -4,58 +4,29 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Ghostlet — Stats</title>
-  <link rel="stylesheet" href="assets/style.css">
   <style>
-    .container { max-width: 800px; margin: 24px auto; color: #eee; font-family: Segoe UI, Arial; }
-    .topbar { display:flex; justify-content:space-between; align-items:center; padding:12px 18px; background:#242444; box-shadow:0 0 12px #ff6aff; border-bottom:2px solid #ff6aff; position:sticky; top:0; }
-    .brand { color:#ff6aff; font-weight:800; text-decoration:none; }
-    .stat-card { background:#2b2b44; padding:16px; border-radius:12px; margin:12px 0; border:2px solid rgba(255,106,255,0.06); }
-    .stat-title { font-weight:700; color:#ff6aff; margin-bottom:6px; }
+    :root{--glow:#ff6aff}
+    body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee}
+    .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#242444;box-shadow:0 0 12px var(--glow);border-bottom:2px solid var(--glow);position:sticky;top:0;z-index:100}
+    .brand{color:var(--glow);font-weight:800;text-decoration:none}
+    nav button{background:var(--glow);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:4px}
+    .container{max-width:1100px;margin:12px auto;padding:0 18px}
+    .h1{color:var(--glow);font-size:1.6rem;margin:12px 0}
+    .profile{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+    .profile img{width:72px;height:72px;border-radius:50%;border:2px solid var(--glow)}
+    .profile .username{font-weight:800;font-size:1.4rem;color:var(--glow)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+    .card{background:#2b2b44;padding:12px;border-radius:12px;text-align:center;border:2px solid rgba(255,106,255,0.06)}
+    .card img{width:100%;height:120px;object-fit:contain;border-radius:8px}
+    .rarity{font-weight:800;padding:6px;border-radius:8px;margin-top:8px;display:inline-block;color:#111}
+    .stat-card{background:#2b2b44;padding:14px;border-radius:12px;text-align:center;border:2px solid rgba(255,106,255,0.06);margin-bottom:12px}
+    .empty{color:#aaa;padding:22px;text-align:center}
+    button{background:var(--glow);border:none;color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;}
   </style>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
-      authDomain: "ghostlet-98357.firebaseapp.com",
-      projectId: "ghostlet-98357",
-      storageBucket: "ghostlet-98357.appspot.com",
-      messagingSenderId: "843012219969",
-      appId: "1:843012219969:web:9e3037578726debf2212c0"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    window.addEventListener('DOMContentLoaded', () => {
-      const usernameEl = document.getElementById('username');
-      const tokensEl = document.getElementById('tokens');
-      const packsEl = document.getElementById('packs');
-      const blooksEl = document.getElementById('blooks');
-      const messagesEl = document.getElementById('messages');
-
-      auth.onAuthStateChanged(async user => {
-        if (!user) {
-          window.location.href = "login.html"; // redirect if not logged in
-          return;
-        }
-
-        usernameEl.textContent = user.displayName || user.email;
-
-        // Load stats from Firestore
-        const statsDoc = await db.collection('users').doc(user.uid).get();
-        const stats = statsDoc.exists ? statsDoc.data() : {};
-
-        tokensEl.textContent = stats.tokens || 0;
-        packsEl.textContent = stats.packsOpened || 0;
-        blooksEl.textContent = stats.blooksOwned || 0;
-        messagesEl.textContent = stats.messagesSent || 0;
-      });
-    });
-  </script>
 </head>
 <body>
   <div class="topbar">
@@ -71,32 +42,74 @@
   </div>
 
   <div class="container">
-    <div class="stat-card">
-      <div class="stat-title">Username:</div>
-      <div id="username">Loading...</div>
+    <div class="profile">
+      <img id="profilePic" src="https://i.ibb.co/0FQG7kF/friendly-ghost.png" alt="Profile">
+      <div class="username" id="username">Username</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-title">Tokens:</div>
-      <div id="tokens">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-title">Packs Opened:</div>
-      <div id="packs">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-title">Blooks Owned:</div>
-      <div id="blooks">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-title">Messages Sent:</div>
-      <div id="messages">0</div>
-    </div>
+
+    <div id="statsGrid"></div>
+
+    <div class="h1">Your Blooks</div>
+    <div id="blooksGrid" class="grid"></div>
+    <div id="empty" class="empty hidden">You have no Blooks yet!</div>
   </div>
 
   <script>
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      auth.signOut().then(() => window.location.href = 'login.html');
+    const firebaseConfig = {
+      apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
+      authDomain: "ghostlet-98357.firebaseapp.com",
+      projectId: "ghostlet-98357",
+      storageBucket: "ghostlet-98357.appspot.com",
+      messagingSenderId: "843012219969",
+      appId: "1:843012219969:web:9e3037578726debf2212c0"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const RARITY_COLORS = { common:'#9aa0a6', uncommon:'#2ecc71', rare:'#3498db', epic:'#9b59b6', legendary:'#f1c40f', chroma:'#ff6aff' };
+
+    auth.onAuthStateChanged(async user=>{
+      if(!user) return window.location.href='login.html';
+
+      const profilePic = document.getElementById('profilePic');
+      const usernameEl = document.getElementById('username');
+      usernameEl.textContent = user.displayName || user.email;
+
+      const userRef = db.collection('users').doc(user.uid);
+      const statsDoc = await userRef.get();
+      const stats = statsDoc.exists ? statsDoc.data() : {tokens:0,packsOpened:0,blooksOwned:0,messagesSent:0};
+
+      const statsGrid = document.getElementById('statsGrid');
+      statsGrid.innerHTML = `
+        <div class="stat-card">Tokens: ${stats.tokens||0}</div>
+        <div class="stat-card">Packs Opened: ${stats.packsOpened||0}</div>
+        <div class="stat-card">Blooks Owned: ${stats.blooksOwned||0}</div>
+        <div class="stat-card">Messages Sent: ${stats.messagesSent||0}</div>
+      `;
+
+      // Load Blooks
+      const blooksGrid = document.getElementById('blooksGrid');
+      const blooksSnap = await userRef.collection('blooks').get();
+      const blooks = [];
+      blooksSnap.forEach(doc=> blooks.push(doc.data()));
+
+      if(blooks.length===0) document.getElementById('empty').classList.remove('hidden');
+      else document.getElementById('empty').classList.add('hidden');
+
+      blooksGrid.innerHTML='';
+      for(const b of blooks){
+        const div = document.createElement('div'); div.className='card';
+        div.innerHTML = `
+          <img src="${b.image||'https://i.ibb.co/0FQG7kF/friendly-ghost.png'}" alt="${b.name}">
+          <div style="margin-top:8px;font-weight:700">${b.name}</div>
+          <div class="rarity" style="background:${RARITY_COLORS[(b.rarity||'').toLowerCase()]||'#9aa0a6'}">${b.rarity||'Unknown'}</div>
+        `;
+        blooksGrid.appendChild(div);
+      }
     });
+
+    document.getElementById('logoutBtn').addEventListener('click', ()=> auth.signOut().then(()=> location.href='login.html'));
   </script>
 </body>
 </html>
