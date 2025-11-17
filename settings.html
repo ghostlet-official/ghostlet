@@ -1,48 +1,47 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Ghostlet — Settings</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — Ghostlet</title>
 <style>
-  :root{--glow:#ff6aff}
-  body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee}
-  .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#242444;box-shadow:0 0 12px var(--glow);border-bottom:2px solid var(--glow);position:sticky;top:0;z-index:100}
-  .brand{color:var(--glow);font-weight:800;text-decoration:none}
-  .topbar button{background:var(--glow);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:4px}
-  .container{max-width:500px;margin:20px auto;padding:0 18px}
-  .h1{color:var(--glow);font-size:1.6rem;margin:12px 0;text-align:center}
-  label{display:block;margin:12px 0 6px;font-weight:600;color:#ccc}
-  input{width:100%;padding:10px;border-radius:8px;border:none;margin-bottom:12px;background:#2b2b44;color:#eee}
-  button#saveBtn{width:100%;margin-top:8px}
+:root{--glow:#ff6aff}
+body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#242444;box-shadow:0 0 12px var(--glow);border-bottom:2px solid var(--glow);position:sticky;top:0;z-index:100}
+.brand{color:var(--glow);font-weight:800;text-decoration:none}
+.topbar button{background:var(--glow);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:4px}
+.container{max-width:500px;margin:20px auto;padding:0 18px}
+.h1{color:var(--glow);font-size:1.6rem;margin:12px 0;text-align:center}
+label{display:block;margin:12px 0 6px;font-weight:600;color:#ccc}
+input{width:100%;padding:10px;border-radius:8px;border:none;margin-bottom:12px;background:#2b2b44;color:#eee}
+button#saveBtn, button#resetBtn{width:100%;margin-top:8px;padding:10px;border:none;border-radius:8px;font-weight:700;cursor:pointer}
+button#saveBtn{background:var(--glow);color:#fff}
+button#resetBtn{background:#ff4040;color:#fff}
+button:hover{opacity:0.85}
 </style>
-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="topbar">
-    <a class="brand" href="home.html">Ghostlet</a>
-    <div>
-      <button onclick="location.href='stats.html'">Stats</button>
-      <button onclick="location.href='chat.html'">Chat</button>
-      <button onclick="location.href='market.html'">Market</button>
-      <button onclick="location.href='blooks.html'">Blooks</button>
-      <button onclick="location.href='settings.html'">Settings</button>
-      <button onclick="location.href='admin.html'">Admin</button>
-      <button id="logoutBtn">Logout</button>
-    </div>
-  </div>
 
-  <div class="container">
-    <div class="h1">Settings</div>
-    <label for="displayName">Display Name</label>
-    <input id="displayName" placeholder="Enter display name" />
-    <label for="profilePic">Profile Picture URL</label>
-    <input id="profilePic" placeholder="Enter image URL" />
-    <button id="saveBtn">Save Changes</button>
-  </div>
+<div class="topbar">
+  <div class="brand">Ghostlet</div>
+  <button id="logoutBtn">Logout</button>
+</div>
+
+<div class="container">
+  <h1 class="h1">Settings</h1>
+
+  <label>Username</label>
+  <input type="text" id="usernameInput">
+
+  <label>Glow Color</label>
+  <input type="color" id="glowColor" value="#ff6aff">
+
+  <button id="saveBtn">Save Changes</button>
+  <button id="resetBtn">Reset Stats</button>
+</div>
 
 <script>
 const firebaseConfig = {
@@ -57,38 +56,59 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Logout button
-document.getElementById('logoutBtn').addEventListener('click', ()=>{
-  auth.signOut().then(()=> location.href='login.html');
-});
+let currentUserUid = null;
 
-// Check login
-auth.onAuthStateChanged(user=>{
-  if(!user) location.href='login.html';
-  else loadUserSettings(user.uid);
-});
-
-// Load user data
-function loadUserSettings(uid){
-  db.collection('users').doc(uid).get().then(doc=>{
+// Check if user is logged in
+auth.onAuthStateChanged(async user => {
+  if(user){
+    currentUserUid = user.uid;
+    const doc = await db.collection("users").doc(currentUserUid).get();
     if(doc.exists){
       const data = doc.data();
-      document.getElementById('displayName').value = data.displayName || '';
-      document.getElementById('profilePic').value = data.profilePic || '';
+      document.getElementById("usernameInput").value = data.username || "";
+      if(data.glowColor) document.getElementById("glowColor").value = data.glowColor;
+      document.documentElement.style.setProperty("--glow", document.getElementById("glowColor").value);
     }
-  });
-}
+  } else {
+    window.location.href = "login.html"; // redirect if not logged in
+  }
+});
 
 // Save changes
-document.getElementById('saveBtn').addEventListener('click', ()=>{
-  const user = auth.currentUser;
-  if(!user) return;
-  const displayName = document.getElementById('displayName').value.trim();
-  const profilePic = document.getElementById('profilePic').value.trim();
-  db.collection('users').doc(user.uid).set({displayName, profilePic},{merge:true})
-    .then(()=> alert('Profile saved!'))
-    .catch(e=> console.error(e));
+document.getElementById("saveBtn").addEventListener("click", async () => {
+  const newUsername = document.getElementById("usernameInput").value.trim();
+  const newGlow = document.getElementById("glowColor").value;
+
+  if(!newUsername){alert("Username cannot be empty"); return;}
+
+  await db.collection("users").doc(currentUserUid).set({
+    username: newUsername,
+    glowColor: newGlow
+  }, {merge:true});
+
+  document.documentElement.style.setProperty("--glow", newGlow);
+  alert("Settings saved!");
+});
+
+// Reset stats
+document.getElementById("resetBtn").addEventListener("click", async () => {
+  if(!confirm("Are you sure you want to reset your stats?")) return;
+
+  await db.collection("users").doc(currentUserUid).set({
+    packsOpened: 0,
+    blooks: [],
+    messagesSent: 0
+  }, {merge:true});
+
+  alert("Stats reset!");
+});
+
+// Logout
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  await auth.signOut();
+  window.location.href = "login.html";
 });
 </script>
+
 </body>
 </html>
