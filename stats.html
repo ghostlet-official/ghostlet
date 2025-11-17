@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Stats</title>
-
 <style>
   :root{--glow:#ff6aff}
   body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee}
@@ -12,155 +11,39 @@
   .topbar button{background:var(--glow);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:4px}
 
   .container{max-width:500px;margin:20px auto;padding:0 18px}
-
   .h1{color:var(--glow);font-size:1.6rem;margin:12px 0;text-align:center}
 
   .profileCard{
-    background:#242444;
-    border:2px solid var(--glow);
-    border-radius:14px;
-    padding:16px;
-    margin-bottom:18px;
-    text-align:center;
-    box-shadow:0 0 12px var(--glow);
+    background:#242444;border:2px solid var(--glow);border-radius:14px;padding:16px;margin-bottom:18px;text-align:center;box-shadow:0 0 12px var(--glow);
   }
-
-  .pfp{
-    width:90px;height:90px;border-radius:50%;border:3px solid var(--glow);
-    object-fit:cover;background:#111;margin-bottom:10px;
-  }
-
-  .username{
-    font-size:1.4rem;
-    font-weight:700;
-    color:var(--glow);
-    margin:6px 0;
-  }
-
-  .badges{
-    margin-top:10px;
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    gap:8px;
-  }
-
-  .badge{
-    background:#2b2b44;
-    padding:6px 10px;
-    border-radius:8px;
-    border:1px solid var(--glow);
-    font-size:0.8rem;
-  }
+  .pfp{width:90px;height:90px;border-radius:50%;border:3px solid var(--glow);object-fit:cover;background:#111;margin-bottom:10px;}
+  .username{font-size:1.4rem;font-weight:700;color:var(--glow);margin:6px 0;}
+  .badges{margin-top:10px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;}
+  .badge{background:#2b2b44;padding:6px 10px;border-radius:8px;border:1px solid var(--glow);font-size:0.8rem;}
 
   .statsCard{
-    background:#242444;
-    border:2px solid var(--glow);
-    border-radius:14px;
-    padding:16px;
-    box-shadow:0 0 12px var(--glow);
+    background:#242444;border:2px solid var(--glow);border-radius:14px;padding:16px;box-shadow:0 0 12px var(--glow);
   }
-
-  .statRow{
-    display:flex;
-    justify-content:space-between;
-    margin:10px 0;
-    padding:8px;
-    background:#2b2b44;
-    border-radius:8px;
-  }
+  .statRow{display:flex;justify-content:space-between;margin:10px 0;padding:8px;background:#2b2b44;border-radius:8px;}
 </style>
 
 <!-- Firebase -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { 
-    getFirestore, doc, getDoc 
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
-    authDomain: "ghostlet-98357.firebaseapp.com",
-    projectId: "ghostlet-98357",
-    storageBucket: "ghostlet-98357.firebasestorage.app",
-    messagingSenderId: "843012219969",
-    appId: "1:843012219969:web:9e3037578726debf2212c0"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth();
-  const db = getFirestore();
-
-  const usernameEl = document.getElementById("username");
-  const tokensEl = document.getElementById("tokens");
-  const packsEl = document.getElementById("packs");
-  const blooksEl = document.getElementById("blooks");
-  const msgsEl = document.getElementById("messages");
-  const pfpEl = document.getElementById("pfp");
-  const badgesEl = document.getElementById("badges");
-
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      window.location = "login.html";
-      return;
-    }
-
-    const uid = user.uid;
-    const userRef = doc(db, "users", uid);
-    const snap = await getDoc(userRef);
-
-    if (!snap.exists()) return;
-
-    const data = snap.data();
-
-    // username
-    usernameEl.textContent = data.username || "Unknown User";
-
-    // tokens
-    tokensEl.textContent = data.tokens || 0;
-
-    // packs opened
-    packsEl.textContent = data.packsOpened || 0;
-
-    // blooks owned (count)
-    blooksEl.textContent = data.blooks ? data.blooks.length : 0;
-
-    // messages sent
-    msgsEl.textContent = data.messagesSent || 0;
-
-    // pfp based on owned blooks
-    if (data.blooks && data.blooks.length > 0) {
-      // you can set your own image paths
-      pfpEl.src = `assets/blooks/${data.blooks[0]}.png`;
-    }
-
-    // badges (example: based on packs opened)
-    badgesEl.innerHTML = "";
-
-    if (data.packsOpened >= 1) {
-      badgesEl.innerHTML += `<div class="badge">Opened First Pack</div>`;
-    }
-    if (data.blooks && data.blooks.length >= 5) {
-      badgesEl.innerHTML += `<div class="badge">Collector</div>`;
-    }
-    if (data.messagesSent >= 10) {
-      badgesEl.innerHTML += `<div class="badge">Chatty</div>`;
-    }
-  });
-
-</script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 </head>
 <body>
 
 <div class="topbar">
-  <a class="brand" href="index.html">Ghostlet</a>
+  <a class="brand" href="home.html">Ghostlet</a>
   <div>
-    <button onclick="location.href='blooks.html'">Blooks</button>
-    <button onclick="location.href='market.html'">Market</button>
+    <button onclick="location.href='stats.html'">Stats</button>
     <button onclick="location.href='chat.html'">Chat</button>
-    <button onclick="location.href='settings.html'">Settings</button>
+    <button onclick="location.href='market.html'">Market</button>
+    <button onclick="location.href='blooks.html'">Blooks</button>
+        <button onclick="location.href='settings.html'">Settings</button>
+        <button onclick="location.href='admin.html'">Admin</button>
   </div>
 </div>
 
@@ -170,7 +53,6 @@
   <div class="profileCard">
     <img id="pfp" class="pfp" src="assets/defaultpfp.png">
     <div id="username" class="username">Loading...</div>
-
     <div id="badges" class="badges"></div>
   </div>
 
@@ -180,8 +62,63 @@
     <div class="statRow"><span>Blooks Owned</span><span id="blooks">0</span></div>
     <div class="statRow"><span>Messages Sent</span><span id="messages">0</span></div>
   </div>
-
 </div>
+
+<script>
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
+    authDomain: "ghostlet-98357.firebaseapp.com",
+    projectId: "ghostlet-98357",
+    storageBucket: "ghostlet-98357.appspot.com",
+    messagingSenderId: "843012219969",
+    appId: "1:843012219969:web:9e3037578726debf2212c0"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  const usernameEl = document.getElementById("username");
+  const tokensEl = document.getElementById("tokens");
+  const packsEl = document.getElementById("packs");
+  const blooksEl = document.getElementById("blooks");
+  const msgsEl = document.getElementById("messages");
+  const pfpEl = document.getElementById("pfp");
+  const badgesEl = document.getElementById("badges");
+
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const uid = user.uid;
+    const userRef = db.collection("users").doc(uid);
+
+    // Live updates
+    userRef.onSnapshot(docSnap => {
+      if (!docSnap.exists) return;
+      const data = docSnap.data();
+
+      usernameEl.textContent = data.username || "Unknown";
+      tokensEl.textContent = data.tokens || 0;
+      packsEl.textContent = data.packsOpened || 0;
+      blooksEl.textContent = data.blooks ? data.blooks.length : 0;
+      msgsEl.textContent = data.messagesSent || 0;
+
+      // PFP from first blook owned
+      if (data.blooks && data.blooks.length > 0) {
+        pfpEl.src = `assets/blooks/${data.blooks[0]}.png`;
+      }
+
+      // Badges
+      badgesEl.innerHTML = "";
+      if (data.packsOpened >= 1) badgesEl.innerHTML += `<div class="badge">Opened First Pack</div>`;
+      if (data.blooks && data.blooks.length >= 5) badgesEl.innerHTML += `<div class="badge">Collector</div>`;
+      if (data.messagesSent >= 10) badgesEl.innerHTML += `<div class="badge">Chatty</div>`;
+    });
+  });
+</script>
 
 </body>
 </html>
