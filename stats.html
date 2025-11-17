@@ -1,193 +1,269 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stats — Ghostlet</title>
-<style>
-:root{--glow:#ff6aff;--primary-bg:#0d0d1a;--secondary-bg:#1a1a2e}
-body{
-  margin:0;
-  font-family:Segoe UI,Arial,sans-serif;
-  background:linear-gradient(180deg,var(--primary-bg),var(--secondary-bg));
-  color:#eee;
-}
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:12px 18px;
-  background:#242444;
-  box-shadow:0 0 12px var(--glow);
-  border-bottom:2px solid var(--glow);
-  position:sticky;
-  top:0;
-  z-index:100;
-}
-.topbar button{
-  background:var(--glow);
-  border:none;
-  color:#fff;
-  padding:6px 10px;
-  border-radius:8px;
-  cursor:pointer;
-  margin-left:4px;
-}
-.brand{
-  color:var(--glow);
-  font-weight:800;
-  text-decoration:none;
-}
-.container{
-  max-width:500px;
-  margin:20px auto;
-  padding:0 18px;
-}
-.h1{
-  color:var(--glow);
-  font-size:1.6rem;
-  margin:12px 0;
-  text-align:center;
-}
-.stat-card{
-  background:linear-gradient(180deg,#20203a,#23233e);
-  padding:18px;
-  border-radius:12px;
-  margin:12px 0;
-  text-align:center;
-  box-shadow:0 6px 20px rgba(0,0,0,0.6);
-  transition:all 0.3s ease;
-}
-.stat-card h2{
-  margin-bottom:8px;
-  color:#fff;
-  font-size:1.4rem;
-}
-.stat-card p{
-  color:#ccc;
-  font-size:1.1rem;
-}
-</style>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <meta charset="UTF-8">
+  <title>Ghostlet - Stats</title>
+  <style>
+    :root {
+      --glow: #ff6aff;
+      --bg1: #0d0d1a;
+      --bg2: #1a1a2e;
+      --text: #eee;
+    }
+
+    body {
+      margin: 0;
+      font-family: Segoe UI, Arial;
+      background: linear-gradient(180deg, var(--bg1), var(--bg2));
+      color: var(--text);
+    }
+
+    /* TOP BAR */
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      background: #242444;
+      box-shadow: 0 0 12px var(--glow);
+      border-bottom: 2px solid var(--glow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      color: var(--glow);
+      font-weight: 800;
+      text-decoration: none;
+      font-size: 1.2rem;
+    }
+
+    .top-buttons {
+      display: flex;
+      gap: 6px;
+    }
+
+    .topbar button {
+      background: var(--glow);
+      border: none;
+      color: white;
+      padding: 4px 7px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: .8rem;
+      white-space: nowrap;
+    }
+
+    /* PAGE CONTENT */
+    .container {
+      max-width: 700px;
+      margin: 25px auto;
+      padding: 0 18px;
+    }
+
+    .section-title {
+      color: var(--glow);
+      font-size: 1.7rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+
+    /* PROFILE HEADER */
+    .profile-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #242444;
+      padding: 15px;
+      border-radius: 14px;
+      box-shadow: 0 0 10px var(--glow);
+      margin-bottom: 20px;
+    }
+
+    .pfp-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .pfp {
+      width: 75px;
+      height: 75px;
+      border-radius: 12px;
+      background: #000;
+      border: 3px solid var(--glow);
+      object-fit: cover;
+    }
+
+    .username {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* BADGES */
+    .badges-box {
+      display: flex;
+      gap: 10px;
+    }
+
+    .badge {
+      background: var(--glow);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: .75rem;
+      font-weight: bold;
+      color: white;
+    }
+
+    /* STATS GRID */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .stat-card {
+      background: #242444;
+      padding: 18px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 0 10px var(--glow);
+    }
+
+    .stat-label {
+      font-size: .9rem;
+      color: #aaa;
+    }
+
+    .stat-value {
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--glow);
+    }
+
+    @media (max-width: 500px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .pfp {
+        width: 60px;
+        height: 60px;
+      }
+      .username {
+        font-size: 1.1rem;
+      }
+      .topbar button {
+        padding: 3px 5px;
+        font-size: .75rem;
+      }
+    }
+  </style>
 </head>
 <body>
 
-<div class="topbar">
-  <a class="brand" href="home.html">Ghostlet</a>
-  <div>
-    <button onclick="location.href='chat.html'">Chat</button>
-    <button onclick="location.href='market.html'">Market</button>
-    <button onclick="location.href='blooks.html'">Blooks</button>
-    <button onclick="location.href='settings.html'">Settings</button>
-    <button id="logoutBtn">Logout</button>
-  </div>
-</div>
+  <div class="topbar">
+    <a class="brand" href="index.html">Ghostlet</a>
 
-<div class="container">
-  <h1 class="h1">Your Stats</h1>
-
-  <div class="stat-card">
-    <h2 id="usernameDisplay">Username: Loading...</h2>
+    <div class="top-buttons">
+      <button onclick="location.href='market.html'">Market</button>
+      <button onclick="location.href='blooks.html'">Blooks</button>
+      <button onclick="location.href='chat.html'">Chat</button>
+      <button onclick="location.href='settings.html'">Settings</button>
+      <button onclick="logout()">Logout</button>
+    </div>
   </div>
 
-  <div class="stat-card">
-    <h2>Packs Opened</h2>
-    <p id="packsCount">0</p>
+
+
+  <div class="container">
+    <div class="section-title">Your Stats</div>
+
+    <!-- PROFILE AREA -->
+    <div class="profile-row">
+      <div class="pfp-user">
+        <img id="pfp" class="pfp" src="default.png">
+        <div class="username" id="username">Loading…</div>
+      </div>
+
+      <div class="badges-box">
+        <div class="badge">OG</div>
+        <div class="badge">Player</div>
+      </div>
+    </div>
+
+
+    <!-- STATS GRID -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Tokens</div>
+        <div class="stat-value" id="tokens">0</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Packs Opened</div>
+        <div class="stat-value" id="packs">0</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Blooks Owned</div>
+        <div class="stat-value" id="blooks">0</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Messages Sent</div>
+        <div class="stat-value" id="msgs">0</div>
+      </div>
+    </div>
+
   </div>
 
-  <div class="stat-card">
-    <h2>Blooks Owned</h2>
-    <p id="blooksCount">0</p>
-  </div>
 
-  <div class="stat-card">
-    <h2>Messages Sent</h2>
-    <p id="messagesCount">0</p>
-  </div>
-</div>
+  <!-- FIREBASE -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc }
+      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-<script>
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
-  authDomain: "ghostlet-98357.firebaseapp.com",
-  projectId: "ghostlet-98357",
-  storageBucket: "ghostlet-98357.appspot.com",
-  messagingSenderId: "843012219969",
-  appId: "1:843012219969:web:9e3037578726debf2212c0"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+    const firebaseConfig = YOUR_FIREBASE_CONFIG;
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-let currentUserUid = null;
+    function logout() { signOut(auth); }
 
-// Load saved colors from localStorage for dynamic theming
-function applyColors() {
-  const colors = JSON.parse(localStorage.getItem('appliedColors') || '{"primary":{"h":300,"s":100,"l":42},"secondary":{"h":270,"s":80,"l":18}}');
-  const p = colors.primary;
-  const s = colors.secondary;
-  const primaryBg = `hsl(${p.h},${p.s}%,${p.l}%)`;
-  const secondaryBg = `hsl(${s.h},${s.s}%,${s.l}%)`;
-  document.documentElement.style.setProperty('--glow', primaryBg);
-  document.documentElement.style.setProperty('--primary-bg', primaryBg);
-  document.documentElement.style.setProperty('--secondary-bg', secondaryBg);
-}
-applyColors();
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        location.href = "login.html";
+        return;
+      }
 
-// Auth guard
-auth.onAuthStateChanged(user => {
-  if(!user) return window.location.href='login.html';
-  currentUserUid = user.uid;
-  loadStats();
-});
+      const ref = doc(db, "users", user.uid);
+      const snap = await getDoc(ref);
 
-// Logout
-document.getElementById('logoutBtn').addEventListener('click', async () => {
-  await auth.signOut();
-  window.location.href='login.html';
-});
+      if (!snap.exists()) return;
 
-// Load stats live
-function loadStats() {
-  const usernameEl = document.getElementById('usernameDisplay');
-  const packsEl = document.getElementById('packsCount');
-  const blooksEl = document.getElementById('blooksCount');
-  const messagesEl = document.getElementById('messagesCount');
+      const data = snap.data();
 
-  const userRef = db.collection('users').doc(currentUserUid);
+      // fill page
+      document.getElementById("username").textContent = data.username || user.email;
+      document.getElementById("pfp").src = data.pfp || "default.png";
+      document.getElementById("tokens").textContent = data.tokens || 0;
+      document.getElementById("packs").textContent = data.packsOpened || 0;
+      document.getElementById("blooks").textContent = data.blooksOwned?.length || 0;
+      document.getElementById("msgs").textContent = data.messagesSent || 0;
 
-  userRef.onSnapshot(async doc => {
-    if(!doc.exists) return;
-    const data = doc.data();
-
-    usernameEl.textContent = "Username: " + (data.username || "Unknown");
-
-    // Packs opened
-    if(data.packsOpened !== undefined) packsEl.textContent = data.packsOpened;
-    else {
-      const packsSnap = await userRef.collection('packsOpened').get();
-      packsEl.textContent = packsSnap.size;
-    }
-
-    // Blooks owned
-    if(data.blooks !== undefined) blooksEl.textContent = data.blooks.length;
-    else {
-      const blooksSnap = await userRef.collection('blooks').get();
-      blooksEl.textContent = blooksSnap.size;
-    }
-
-    // Messages sent
-    if(data.messagesSent !== undefined) messagesEl.textContent = data.messagesSent;
-    else {
-      const messagesSnap = await db.collection('messages').where('uid','==',currentUserUid).get();
-      messagesEl.textContent = messagesSnap.size;
-    }
-  });
-}
-</script>
+      // APPLY COLOR THEME
+      if (data.themeColor) {
+        document.documentElement.style.setProperty("--glow", data.themeColor);
+      }
+    });
+  </script>
 
 </body>
 </html>
