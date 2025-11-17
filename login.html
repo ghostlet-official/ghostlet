@@ -1,55 +1,60 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Ghostlet — Login</title>
-  <style>
-    :root{--glow:#ff6aff}
-    body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee;display:flex;justify-content:center;align-items:center;height:100vh}
-    .card{background:#2b2b44;padding:24px;border-radius:12px;text-align:center;box-shadow:0 0 12px var(--glow);}
-    input{width:100%;padding:10px;margin:8px 0;border-radius:8px;border:none;background:#1a1a2e;color:#fff}
-    button{background:var(--glow);border:none;color:#fff;padding:10px 14px;border-radius:8px;cursor:pointer;width:100%;margin-top:12px}
-    a{color:var(--glow);text-decoration:none;font-size:0.9rem}
-    h1{color:var(--glow)}
-  </style>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — Ghostlet</title>
+<style>
+  :root{--glow:#ff6aff}
+  body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee;display:flex;justify-content:center;align-items:center;height:100vh}
+  .card{background:#242444;padding:24px;border-radius:16px;border:2px solid var(--glow);width:320px;box-shadow:0 0 12px var(--glow)}
+  h1{text-align:center;color:var(--glow);margin-bottom:16px}
+  label{display:block;margin-top:12px;margin-bottom:4px;font-weight:600;color:#ccc}
+  input{width:100%;padding:10px;border-radius:8px;border:none;background:#2b2b44;color:#eee;}
+  button{width:100%;padding:10px;margin-top:16px;border:none;border-radius:8px;background:var(--glow);color:#fff;font-weight:700;cursor:pointer}
+  button:hover{opacity:0.85}
+  .link{color:var(--glow);text-decoration:none;display:block;text-align:center;margin-top:12px}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="card">
-    <h1>Ghostlet Login</h1>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button id="loginBtn">Login</button>
-    <div style="margin-top:12px"><a href="register.html">Create Account</a></div>
-    <div id="msg" style="color:#f66;margin-top:8px"></div>
-  </div>
+<div class="card">
+  <h1>Login</h1>
+  <label>Email</label>
+  <input type="email" id="email" placeholder="Email">
+  <label>Password</label>
+  <input type="password" id="password" placeholder="Password">
+  <button id="loginBtn">Login</button>
+  <a href="register.html" class="link">Don't have an account? Register</a>
+</div>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
-      authDomain: "ghostlet-98357.firebaseapp.com",
-      projectId: "ghostlet-98357",
-      storageBucket: "ghostlet-98357.appspot.com",
-      messagingSenderId: "843012219969",
-      appId: "1:843012219969:web:9e3037578726debf2212c0"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
+  authDomain: "ghostlet-98357.firebaseapp.com",
+  projectId: "ghostlet-98357",
+  storageBucket: "ghostlet-98357.appspot.com",
+  messagingSenderId: "843012219969",
+  appId: "1:843012219969:web:9e3037578726debf2212c0"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 
-    document.getElementById('loginBtn').addEventListener('click', async () => {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const msg = document.getElementById('msg');
-      msg.textContent = '';
-      try {
-        await auth.signInWithEmailAndPassword(email, password);
-        window.location.href = 'stats.html';
-      } catch(e) {
-        msg.textContent = `Login failed: ${e.message}`;
-      }
-    });
-  </script>
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  if(!email || !password){alert("Fill all fields"); return;}
+
+  try {
+    await auth.signInWithEmailAndPassword(email,password);
+    window.location.href = "stats.html"; // redirect to stats
+  } catch(err){
+    alert(err.message);
+  }
+});
+</script>
 </body>
 </html>
