@@ -3,61 +3,78 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Ghostlet — Market</title>
+<title>Ghostlet — Market (Blooket-style)</title>
 <style>
-:root{#ff6aff}
-body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee}
+:root{--glow:#ff6aff}
+body{margin:0;font-family:Segoe UI,Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee}
 .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#242444;box-shadow:0 0 12px var(--glow);border-bottom:2px solid var(--glow);position:sticky;top:0;z-index:100}
-  .topbar button{background:var(--glow);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:6px}
 .brand{color:var(--glow);font-weight:800;text-decoration:none}
-nav button{background:var();border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:4px}
 .container{max-width:1100px;margin:12px auto;padding:0 18px}
-.h1{color:var();font-size:1.6rem;margin:12px 0}
+.h1{color:var(--glow);font-size:1.6rem;margin:12px 0}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:12px}
-.pack-card{background:linear-gradient(180deg,#20203a,#23233e);border-radius:12px;padding:14px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,0.6);cursor:pointer;transition:transform .15s,box-shadow .15s;border:2px solid transparent}
-.pack-card:hover{transform:translateY(-6px) scale(1.01);border-color:rgba(255,106,255,0.12)}
+.pack-card{background:linear-gradient(180deg,#20203a,#23233e);border-radius:12px;padding:14px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,0.6);cursor:pointer;transition:transform .12s,box-shadow .12s;border:2px solid transparent}
+.pack-card:hover{transform:translateY(-6px) scale(1.02);border-color:rgba(255,106,255,0.12)}
 .pack-thumb{width:120px;height:120px;object-fit:contain;margin:8px auto;display:block}
 .pack-title{color:#fff;font-weight:700;margin-top:8px}
 .pack-sub{color:#ccc;font-size:.9rem;margin-top:4px}
+
 .pack-overlay{position:fixed;inset:0;background:rgba(4,6,20,0.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:9999}
-.pack-popup{width:420px;max-width:calc(100% - 40px);aspect-ratio:1/1;background:radial-gradient(ellipse at 50% 10%, rgba(255,106,255,0.06), rgba(0,0,0,0.35));border-radius:14px;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,0.6),0 0 18px #ff6aff33;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;user-select:none;overflow:visible}
-.pack-graphic{width:60%;height:60%;object-fit:contain;transition:transform 700ms cubic-bezier(.2,.9,.2,1),opacity 350ms;z-index:5;pointer-events:none}
-.blook-card{position:absolute;width:44%;height:44%;object-fit:contain;transform:scale(0) rotate(0deg);opacity:0;transition:transform 1000ms cubic-bezier(.18,.9,.2,1),opacity 400ms;z-index:10;pointer-events:none;filter:drop-shadow(0 8px 18px rgba(0,0,0,0.6));border-radius:8px;background:transparent}
+.pack-popup{width:520px;max-width:calc(100% - 40px);height:520px;background:radial-gradient(circle at 50% 20%, rgba(255,106,255,0.06), rgba(0,0,0,0.35));border-radius:16px;padding:18px;box-shadow:0 12px 50px rgba(0,0,0,0.6),0 0 18px #ff6aff33;position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:visible}
+.pack-graphic{width:240px;height:240px;object-fit:contain;transition:transform 320ms ease, opacity 300ms ease}
+.pack-graphic.shake{animation:packShake 560ms ease}
+@keyframes packShake {
+  0%{ transform: translateX(0) rotate(0) }
+  20%{ transform: translateX(-12px) rotate(-6deg) }
+  40%{ transform: translateX(12px) rotate(6deg) }
+  60%{ transform: translateX(-8px) rotate(-4deg) }
+  80%{ transform: translateX(8px) rotate(4deg) }
+  100%{ transform: translateX(0) rotate(0) }
+}
+
+.blook-card{width:280px;height:280px;object-fit:contain;border-radius:12px;position:absolute;transform:scale(0) rotate(0deg);opacity:0;transition:transform 700ms cubic-bezier(.18,.9,.2,1),opacity 420ms;font-size:0;pointer-events:none}
 .blook-card.reveal{transform:scale(1) rotate(720deg);opacity:1}
-.blook-meta{position:absolute;bottom:14px;width:100%;text-align:center;color:#ddd;font-weight:700;z-index:11;font-family:"Segoe UI",Arial,sans-serif;text-shadow:0 2px 10px rgba(0,0,0,0.75);pointer-events:none}
-.pack-hint{position:absolute;top:12px;right:16px;color:#ffb6ff;font-weight:700;z-index:12;font-family:"Segoe UI",Arial,sans-serif}
+
+.blook-meta{position:absolute;bottom:18px;width:100%;text-align:center;color:#ddd;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,0.7)}
+.pack-hint{position:absolute;top:12px;right:16px;color:#ffb6ff;font-weight:700}
 .toast{position:fixed;right:20px;bottom:20px;background:rgba(0,0,0,0.6);color:#fff;padding:10px 14px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.6);font-weight:700;z-index:10000}
 .hidden{display:none}
+
+/* small particle canvas wrapper */
+.particles { position:absolute; inset:0; pointer-events:none; z-index:12; }
+
+/* flying clone style */
 .flying-clone{position:fixed;z-index:20000;pointer-events:none;will-change:transform,width,height,left,top,opacity;transition:transform 700ms cubic-bezier(.2,.9,.2,1),opacity 420ms ease;transform-origin:center center;border-radius:8px}
+button { background:var(--glow); border:none; color:#fff; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:700 }
 </style>
 
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 </head>
 <body>
-<div class="topbar">
-  <a class="brand" href="home.html">Ghostlet</a>
-  <div>
-    <button onclick="location.href='stats.html'">Stats</button>
-    <button onclick="location.href='chat.html'">Chat</button>
-    <button onclick="location.href='market.html'">Market</button>
-    <button onclick="location.href='blooks.html'">Blooks</button>
-    <button onclick="location.href='settings.html'">Settings</button>
-    <button onclick="location.href='admin.html'">Admin</button>
-    <button id="logoutBtn">Logout</button>
+  <div class="topbar">
+    <a class="brand" href="home.html">Ghostlet</a>
+    <div>
+      <button onclick="location.href='stats.html'">Stats</button>
+      <button onclick="location.href='chat.html'">Chat</button>
+      <button onclick="location.href='market.html'">Market</button>
+      <button onclick="location.href='blooks.html'">Blooks</button>
+      <button onclick="location.href='settings.html'">Settings</button>
+      <button id="logoutBtn">Logout</button>
+    </div>
   </div>
-</div>
 
-<div class="container">
-  <div class="h1">Market — Packs</div>
-  <div id="packsGrid" class="grid" aria-live="polite"></div>
-</div>
+  <div class="container">
+    <div class="h1">Market — Packs</div>
+    <div id="packsGrid" class="grid" aria-live="polite"></div>
+  </div>
 
-<div id="toast" class="toast hidden"></div>
+  <div id="toast" class="toast hidden"></div>
 
 <script>
-// Firebase Config
+/* ===== FIREBASE CONFIG - replace if needed ===== */
 const firebaseConfig = {
   apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
   authDomain: "ghostlet-98357.firebaseapp.com",
@@ -70,148 +87,278 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Logout
-document.getElementById('logoutBtn').addEventListener('click', ()=> auth.signOut().then(()=> location.href='login.html'));
-
+/* ===== PACKS (OG, Spooky, Holiday, Emoji) =====
+   Put whatever images you prefer; these are example links.
+*/
 const PACKS = [
   {
     id: "og_pack",
-    name: "OG Pack",
-    image: "https://i.ibb.co/7rXxLxk/og-pack.png",
+    name: "OG",
+    image: "https://i.ibb.co/fHcnPzp/midnight-pack.png",
     blooks: [
-      { id:"ghost_001", name:"Spencer", rarity:"Common", image:"https://i.ibb.co/0FQG7kF/spencer.png", weight:50 },
-      { id:"cookie_001", name:"GhostRider", rarity:"Uncommon", image:"https://media.discordapp.net/attachments/1412917983575150612/1415896870655492157/ghostRider.png?ex=691b3a78&is=6919e8f8&hm=eeca2ebb62d1e752a1662029400fca7c4425b935c5b080554b5183d2ca503e0e&=&format=webp&quality=lossless&width=315&height=363", weight:25 },
-      { id:"moon_001", name:"Invaser", rarity:"Rare", image:"https://i.ibb.co/NV8Lkk6/invaser.png", weight:15 }
+      { id:"star_001", name:"Falling Star", rarity:"Common", image:"https://i.ibb.co/1JkPZVW/faolling-star.png", weight:50 },
+      { id:"planet_001", name:"Cursed Planet", rarity:"Uncommon", image:"https://i.ibb.co/ZBjm3Sd/cuirsed-planet.png", weight:30 },
+      { id:"comet_001", name:"Blood Comet", rarity:"Rare", image:"https://i.ibb.co/vP7LWQG/blood-comeot.png", weight:20 }
     ]
   },
   {
     id: "spooky_pack",
-    name: "Spooky Pack",
+    name: "Spooky",
     image: "https://i.ibb.co/7rXxLxk/spooky-pack.png",
     blooks: [
-      { id:"ghost_001", name:"Ghost", rarity:"Common", image:"https://i.ibb.co/0FQG7kF/ghost.png", weight:50 },
-      { id:"cookie_001", name:"Pumpkin", rarity:"Uncommon", image:"https://i.ibb.co/fdH9x8x/pumpkin.png", weight:25 },
-      { id:"moon_001", name:"Moon", rarity:"Rare", image:"https://i.ibb.co/NV8Lkk6/moon.png", weight:15 }
+      { id:"ghost_001", name:"Friendly Ghost", rarity:"Common", image:"https://i.ibb.co/0FQG7kF/friendly-ghost.png", weight:50 },
+      { id:"cookie_001", name:"Haunted Cookie", rarity:"Uncommon", image:"https://i.ibb.co/fdH9x8x/hiaunted-cookie.png", weight:30 },
+      { id:"phantom_001", name:"Dark Phantom", rarity:"Epic", image:"https://i.ibb.co/wrgvXc0/spooky-phanitom.png", weight:20 }
     ]
   },
   {
     id: "holiday_pack",
-    name: "Holiday Pack",
+    name: "Holiday",
     image: "https://i.ibb.co/Y7zV6J0/holiday-pack.png",
     blooks: [
-      { id:"smile_001", name:"Christmas", rarity:"Common", image:"https://i.ibb.co/0FQG7kF/christmas.png", weight:60 },
-      { id:"star_001", name:"Halloween", rarity:"Uncommon", image:"https://i.ibb.co/FH7xW3B/halloween.png", weight:30 },
-      { id:"moon_002", name:"Thanksgiving", rarity:"Rare", image:"https://i.ibb.co/NV8Lkk6/thanksgiving.png", weight:10 }
+      { id:"santa_001", name:"Santa Ghost", rarity:"Common", image:"https://i.ibb.co/0FQG7kF/friendly-ghost.png", weight:50 },
+      { id:"snow_001", name:"Snowman", rarity:"Uncommon", image:"https://i.ibb.co/0FQG7kF/friendly-ghost.png", weight:30 },
+      { id:"elf_001", name:"Nine Elf", rarity:"Rare", image:"https://i.ibb.co/0FQG7kF/friendly-ghost.png", weight:20 }
     ]
   },
   {
     id: "emoji_pack",
-    name: "Emoji Pack",
-    image: "https://i.ibb.co/3Nv4gkv/mystery-pack.png",
+    name: "Emoji",
+    image: "https://i.ibb.co/wgmNW4G/rainboow-galaxy.png",
     blooks: [
-      { id:"phantom_001", name:"Smiley Emoji", rarity:"Common", image:"https://i.ibb.co/0FQG7kF/smiley-emoji.png", weight:40 },
-      { id:"cookie_002", name:"Angry Emoji", rarity:"Uncommon", image:"https://i.ibb.co/fdH9x8x/angry-emoji.png", weight:35 },
-      { id:"moon_003", name:"Laughing Emoji", rarity:"Rare", image:"https://i.ibb.co/NV8Lkk6/laughing-emoji.png", weight:25 }
+      { id:"smile_001", name:"Smiley", rarity:"Common", image:"https://i.ibb.co/0FQG7kF/friendly-ghost.png", weight:60 },
+      { id:"heart_001", name:"Heart", rarity:"Uncommon", image:"https://i.ibb.co/0FQG7kF/friendly-ghost.png", weight:30 },
+      { id:"laugh_001", name:"Laughing", rarity:"Rare", image:"https://i.ibb.co/0FQG7kF/friendly-ghost.png", weight:10 }
     ]
   }
 ];
 
-// Auth guard
-auth.onAuthStateChanged(user=>{
-  if(!user) return window.location.href='login.html';
+/* ===== UI helpers ===== */
+const packsGrid = document.getElementById('packsGrid');
+const toastEl = document.getElementById('toast');
+function showToast(msg, t=2200){ toastEl.textContent = msg; toastEl.classList.remove('hidden'); clearTimeout(toastEl._hid); toastEl._hid = setTimeout(()=> toastEl.classList.add('hidden'), t); }
+
+/* ===== Render packs UI ===== */
+function renderPacks(){
+  packsGrid.innerHTML = '';
+  for(const p of PACKS){
+    const card = document.createElement('div');
+    card.className = 'pack-card';
+    card.innerHTML = `
+      <img class="pack-thumb" src="${p.image}" alt="${p.name}">
+      <div class="pack-title">${p.name}</div>
+      <div class="pack-sub">${p.blooks.length} blooks inside</div>
+    `;
+    card.addEventListener('click', ()=> openPackPopup(p));
+    packsGrid.appendChild(card);
+  }
+}
+renderPacks();
+
+/* ===== Weighted pick helper ===== */
+function pickWeighted(blooks){
+  const weights = blooks.map(b => Math.max(1, b.weight || 1));
+  const sum = weights.reduce((a,b)=>a+b,0);
+  let r = Math.random()*sum;
+  for(let i=0;i<blooks.length;i++){
+    r -= weights[i];
+    if(r <= 0) return blooks[i];
+  }
+  return blooks[blooks.length-1];
+}
+
+/* ===== Flying helper (visual only) ===== */
+function flyToTargetFromRect(imgSrc, startRect, targetEl){
+  return new Promise(resolve=>{
+    const clone = document.createElement('img'); clone.src = imgSrc; clone.className = 'flying-clone';
+    document.body.appendChild(clone);
+    clone.style.left = startRect.left + 'px';
+    clone.style.top = startRect.top + 'px';
+    clone.style.width = startRect.width + 'px';
+    clone.style.height = startRect.height + 'px';
+    const targetRect = targetEl.getBoundingClientRect();
+    const dx = targetRect.left + targetRect.width/2 - (startRect.left + startRect.width/2);
+    const dy = targetRect.top + targetRect.height/2 - (startRect.top + startRect.height/2);
+    const endScale = Math.max(0.18, (targetRect.width/startRect.width)*0.7);
+    requestAnimationFrame(()=> {
+      clone.style.transition = 'transform 700ms cubic-bezier(.2,.9,.2,1), opacity 420ms ease';
+      clone.style.transform = `translate(${dx}px, ${dy}px) scale(${endScale}) rotate(540deg)`;
+      clone.style.opacity = '0.95';
+    });
+    clone.addEventListener('transitionend', ()=> { try{ clone.remove(); }catch(e){}; resolve(); }, { once:true });
+  });
+}
+
+/* ===== Pack popup + Blooket-style animation (shake -> explode -> reveal) ===== */
+function openPackPopup(pack){
+  // require auth
+  const user = firebase.auth().currentUser;
+  if(!user){ showToast('Sign in to open packs'); return; }
   const uid = user.uid;
 
-  const packsGrid = document.getElementById('packsGrid');
-  function renderPacks(){
-    packsGrid.innerHTML = '';
-    for(const p of PACKS){
-      const div = document.createElement('div');
-      div.className='pack-card';
-      div.innerHTML = `<img class="pack-thumb" src="${p.image}" alt="${p.name}"><div class="pack-title">${p.name}</div><div class="pack-sub">${p.blooks.length} blooks inside</div>`;
-      div.addEventListener('click', ()=> openPackPopup(p, uid));
-      packsGrid.appendChild(div);
+  // build overlay + popup
+  const overlay = document.createElement('div'); overlay.className = 'pack-overlay';
+  const popup = document.createElement('div'); popup.className = 'pack-popup';
+  overlay.appendChild(popup);
+
+  const hint = document.createElement('div'); hint.className = 'pack-hint'; hint.textContent = 'Tap to open';
+  popup.appendChild(hint);
+
+  const packImg = document.createElement('img'); packImg.className = 'pack-graphic'; packImg.src = pack.image || ''; packImg.alt = pack.name;
+  popup.appendChild(packImg);
+
+  const particlesWrap = document.createElement('div'); particlesWrap.className = 'particles'; popup.appendChild(particlesWrap);
+
+  const blookImg = document.createElement('img'); blookImg.className = 'blook-card'; popup.appendChild(blookImg);
+  const meta = document.createElement('div'); meta.className = 'blook-meta'; meta.style.display='none'; popup.appendChild(meta);
+
+  document.body.appendChild(overlay);
+
+  let state = 'idle';
+  let selected = null;
+
+  // particle function (tiny fireworks)
+  function burst(color, count=28){
+    const canvas = document.createElement('canvas');
+    canvas.width = popup.clientWidth; canvas.height = popup.clientHeight;
+    canvas.style.width = '100%'; canvas.style.height='100%';
+    particlesWrap.appendChild(canvas);
+    const ctx = canvas.getContext('2d'); const parts = [];
+    for(let i=0;i<count;i++){
+      const angle = Math.random()*Math.PI*2;
+      const speed = 4 + Math.random()*6;
+      parts.push({ x: canvas.width/2, y: canvas.height/2, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, size: 4+Math.random()*6, life:0, ttl: 40+Math.random()*30, color });
     }
-  }
-  renderPacks();
-
-  // Weighted pick
-  function pickWeighted(blooks){
-    const weights = blooks.map(b => Math.max(1,b.weight||1));
-    const sum = weights.reduce((a,b)=>a+b,0);
-    let r=Math.random()*sum;
-    for(let i=0;i<blooks.length;i++){
-      r -= weights[i];
-      if(r<=0) return blooks[i];
-    }
-    return blooks[blooks.length-1];
-  }
-
-  // Fly animation (unchanged)
-  function flyToTargetFromRect(imgSrc, startRect, targetEl){
-    return new Promise(resolve=>{
-      const clone = document.createElement('img');
-      clone.src = imgSrc; clone.className='flying-clone';
-      document.body.appendChild(clone);
-      clone.style.left = startRect.left+'px';
-      clone.style.top = startRect.top+'px';
-      clone.style.width = startRect.width+'px';
-      clone.style.height = startRect.height+'px';
-      const targetRect = targetEl.getBoundingClientRect();
-      const dx = targetRect.left + targetRect.width/2 - (startRect.left+startRect.width/2);
-      const dy = targetRect.top + targetRect.height/2 - (startRect.top+startRect.height/2);
-      const endScale = Math.max(0.22,(targetRect.width/startRect.width)*0.9);
-      requestAnimationFrame(()=>{
-        clone.style.transition='transform 700ms cubic-bezier(.2,.9,.2,1), opacity 420ms ease';
-        clone.style.transform=`translate(${dx}px, ${dy}px) scale(${endScale}) rotate(540deg)`;
-        clone.style.opacity='0.95';
-      });
-      clone.addEventListener('transitionend', ()=>{
-        clone.remove();
-        resolve();
-      }, {once:true});
-    });
-  }
-
-  // Open pack popup
-  function openPackPopup(pack, uid){
-    const overlay=document.createElement('div'); overlay.className='pack-overlay';
-    const popup=document.createElement('div'); popup.className='pack-popup'; overlay.appendChild(popup);
-    const hint=document.createElement('div'); hint.className='pack-hint'; hint.textContent='Tap to open'; popup.appendChild(hint);
-
-    const packImg=document.createElement('img'); packImg.className='pack-graphic'; packImg.src=pack.image||''; popup.appendChild(packImg);
-    const blookImg=document.createElement('img'); blookImg.className='blook-card'; popup.appendChild(blookImg);
-    const meta=document.createElement('div'); meta.className='blook-meta'; meta.style.display='none'; popup.appendChild(meta);
-
-    document.body.appendChild(overlay);
-    let state='idle', selected=null;
-
-    overlay.addEventListener('click', async (e)=>{
-      e.stopPropagation();
-      if(state==='idle'){
-        selected = pickWeighted(pack.blooks||[]);
-        blookImg.src=selected.image||'';
-        meta.style.display='block';
-        meta.textContent=`${selected.name} • ${selected.rarity}`;
-        packImg.classList.add('faded'); hint.textContent='Tap to continue';
-        setTimeout(()=> blookImg.classList.add('reveal'),40);
-        state='revealed';
-        return;
+    function tick(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      for(let i=parts.length-1;i>=0;i--){
+        const p = parts[i];
+        p.vy += 0.28;
+        p.vx *= 0.99; p.vy *= 0.99;
+        p.x += p.vx; p.y += p.vy; p.life++;
+        ctx.globalAlpha = Math.max(0, 1 - p.life/p.ttl);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+        if(p.life >= p.ttl) parts.splice(i,1);
       }
-      if(state==='revealed'){
-        // Save blook to user collection
-        await db.collection('users').doc(uid).collection('blooks').add({
-          id:selected.id, name:selected.name, image:selected.image, rarity:selected.rarity, count:1, openedAt: firebase.firestore.FieldValue.serverTimestamp()
+      if(parts.length>0) requestAnimationFrame(tick); else canvas.remove();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  overlay.addEventListener('click', async (e)=>{
+    e.stopPropagation();
+    if(state === 'idle'){
+      // start shake
+      packImg.classList.add('shake');
+      // small rumble
+      window.navigator.vibrate?.(80);
+      // after shake, "explode" and show blook
+      setTimeout(()=>{
+        packImg.classList.remove('shake');
+        // explosion particles (color by rarity later)
+        selected = pickWeighted(pack.blooks || []);
+        const rarityColor = rarityToColor(selected.rarity);
+        burst(rarityColor, 36);
+        // reveal blook
+        blookImg.src = selected.image || '';
+        meta.style.display = 'block';
+        meta.textContent = `${selected.name} • ${selected.rarity || ''}`;
+        // small scale reveal
+        setTimeout(()=> blookImg.classList.add('reveal'), 60);
+        state = 'revealed';
+      }, 620);
+      return;
+    }
+
+    if(state === 'revealed'){
+      // animate flying to blooks button (visual)
+      try{
+        const target = document.getElementById('blooksBtn') || document.querySelector('.topbar button');
+        if(target){
+          const rect = blookImg.getBoundingClientRect();
+          await flyToTargetFromRect(blookImg.src || selected.image || '', rect, target);
+        }
+      } catch(e){ console.warn('fly error', e); }
+
+      // Save to Firestore: update user's blooks (by id) -> increment count
+      try{
+        const userRef = db.collection('users').doc(uid);
+
+        // Normalize pack name (no "Pack" suffix)
+        const packName = (pack.name || '').replace(/\s*Pack\s*$/i, '').trim() || pack.name || 'Unknown';
+
+        // write/increment blook doc (use selected.id as doc id to merge counts)
+        const blookDocRef = userRef.collection('blooks').doc(selected.id);
+        await db.runTransaction(async tx => {
+          const snap = await tx.get(blookDocRef);
+          if(snap.exists){
+            tx.update(blookDocRef, {
+              count: firebase.firestore.FieldValue.increment(1),
+              lastObtained: firebase.firestore.FieldValue.serverTimestamp(),
+              packName
+            });
+          } else {
+            tx.set(blookDocRef, {
+              id: selected.id,
+              name: selected.name,
+              image: selected.image || '',
+              rarity: selected.rarity || '',
+              packName,
+              count: 1,
+              obtainedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          }
+          // increment user's packsOpenedCount on user doc
+          tx.update(userRef, { packsOpenedCount: firebase.firestore.FieldValue.increment(1) });
         });
 
-        // Increment packs opened
+        // also add a record in packsOpened subcollection for history (optional)
         await db.collection('users').doc(uid).collection('packsOpened').add({
-          packId: pack.id, openedAt: firebase.firestore.FieldValue.serverTimestamp()
+          packId: pack.id || null,
+          packName: pack.name || null,
+          blookId: selected.id || null,
+          openedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        overlay.remove();
-        state='closed';
+        showToast(`${selected.name} added to your collection!`);
+      } catch(err){
+        console.error('save error', err);
+        showToast('Failed to save blook — check console');
       }
-    });
+
+      // close overlay
+      overlay.style.transition = 'opacity 220ms';
+      overlay.style.opacity = '0';
+      setTimeout(()=> overlay.remove(), 260);
+      state = 'closed';
+      return;
+    }
+  });
+
+  // close with escape
+  function onKey(e){ if(e.key === 'Escape'){ overlay.remove(); document.removeEventListener('keydown', onKey); } }
+  document.addEventListener('keydown', onKey);
+}
+
+function rarityToColor(r){
+  const map = { common:'#9aa0a6', uncommon:'#2ecc71', rare:'#3498db', epic:'#9b59b6', legendary:'#f1c40f', chroma:'#ff6aff' };
+  return map[(r||'').toLowerCase()] || '#ffffff';
+}
+
+/* ===== Logout button ===== */
+document.getElementById('logoutBtn').addEventListener('click', ()=> auth.signOut().then(()=> location.href='login.html').catch(()=>{}));
+
+/* ===== Auth guard: redirect to login if not signed in ===== */
+auth.onAuthStateChanged(user=>{
+  if(!user){
+    // Not signed in: redirect to login page
+    // If you prefer to allow anonymous pack open, remove this.
+    // For now we require sign-in to save packs.
+    // showToast('Sign in to open packs');
+    // do not redirect immediately if you want to allow browsing
+    // but per your app: redirect to login
+    // window.location.href = 'login.html';
   }
 });
 </script>
