@@ -5,19 +5,79 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Settings — Ghostlet</title>
 <style>
-:root{--glow:#ff6aff}
-body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee}
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#242444;box-shadow:0 0 12px var(--glow);border-bottom:2px solid var(--glow);position:sticky;top:0;z-index:100}
-.brand{color:var(--glow);font-weight:800;text-decoration:none}
-.topbar button{background:var(--glow);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:4px}
-.container{max-width:500px;margin:20px auto;padding:0 18px}
-.h1{color:var(--glow);font-size:1.6rem;margin:12px 0;text-align:center}
-label{display:block;margin:12px 0 6px;font-weight:600;color:#ccc}
-input{width:100%;padding:10px;border-radius:8px;border:none;margin-bottom:12px;background:#2b2b44;color:#eee}
-button#saveBtn, button#resetBtn{width:100%;margin-top:8px;padding:10px;border:none;border-radius:8px;font-weight:700;cursor:pointer}
-button#saveBtn{background:var(--glow);color:#fff}
-button#resetBtn{background:#ff4040;color:#fff}
-button:hover{opacity:0.85}
+:root{--glow:#ff6aff;--primary-bg:#0d0d1a;--secondary-bg:#1a1a2e}
+body{
+  margin:0;
+  font-family:Segoe UI,Arial,sans-serif;
+  background:linear-gradient(180deg,var(--primary-bg),var(--secondary-bg));
+  color:#eee;
+}
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 18px;
+  background:#242444;
+  box-shadow:0 0 12px var(--glow);
+  border-bottom:2px solid var(--glow);
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+.topbar button{
+  background:var(--glow);
+  border:none;
+  color:#fff;
+  padding:6px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-left:4px;
+}
+.brand{
+  color:var(--glow);
+  font-weight:800;
+  text-decoration:none;
+}
+.container{
+  max-width:500px;
+  margin:20px auto;
+  padding:0 18px;
+}
+.h1{
+  color:var(--glow);
+  font-size:1.6rem;
+  margin:12px 0;
+  text-align:center;
+}
+label{
+  display:block;
+  margin:12px 0 6px;
+  font-weight:600;
+  color:#ccc;
+}
+input[type="text"], input[type="color"]{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  margin-bottom:12px;
+  background:#2b2b44;
+  color:#eee;
+}
+button{
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:var(--glow);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  margin-top:8px;
+}
+button:hover{
+  opacity:0.9;
+}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -26,27 +86,29 @@ button:hover{opacity:0.85}
 <body>
 
 <div class="topbar">
-  <div class="brand">Ghostlet</div>
-  <button onclick="location.href='stats.html'">Stats</button>
+  <a class="brand" href="home.html">Ghostlet</a>
+  <div>
+    <button onclick="location.href='stats.html'">Stats</button>
     <button onclick="location.href='chat.html'">Chat</button>
     <button onclick="location.href='market.html'">Market</button>
     <button onclick="location.href='blooks.html'">Blooks</button>
-        <button onclick="location.href='settings.html'">Settings</button>
-        <button onclick="location.href='admin.html'">Admin</button>
-  <button id="logoutBtn">Logout</button>
+    <button id="logoutBtn">Logout</button>
+  </div>
 </div>
 
 <div class="container">
   <h1 class="h1">Settings</h1>
 
-  <label>Username</label>
-  <input type="text" id="usernameInput">
+  <label for="usernameInput">Username</label>
+  <input type="text" id="usernameInput" placeholder="Enter new username">
 
-  <label>Glow Color</label>
-  <input type="color" id="glowColor" value="#ff6aff">
+  <label for="primaryColor">Primary Glow Color</label>
+  <input type="color" id="primaryColor" value="#ff6aff">
 
-  <button id="saveBtn">Save Changes</button>
-  <button id="resetBtn">Reset Stats</button>
+  <label for="secondaryColor">Secondary Background Color</label>
+  <input type="color" id="secondaryColor" value="#1a1a2e">
+
+  <button id="saveBtn">Save Settings</button>
 </div>
 
 <script>
@@ -64,57 +126,95 @@ const db = firebase.firestore();
 
 let currentUserUid = null;
 
-// Check if user is logged in
-auth.onAuthStateChanged(async user => {
-  if(user){
-    currentUserUid = user.uid;
-    const doc = await db.collection("users").doc(currentUserUid).get();
-    if(doc.exists){
-      const data = doc.data();
-      document.getElementById("usernameInput").value = data.username || "";
-      if(data.glowColor) document.getElementById("glowColor").value = data.glowColor;
-      document.documentElement.style.setProperty("--glow", document.getElementById("glowColor").value);
-    }
-  } else {
-    window.location.href = "login.html"; // redirect if not logged in
-  }
-});
+// Apply saved colors on load
+function applyColors(){
+  const colors = JSON.parse(localStorage.getItem('appliedColors') || '{"primary":{"h":300,"s":100,"l":42},"secondary":{"h":270,"s":80,"l":18}}');
+  const p = colors.primary;
+  const s = colors.secondary;
+  const primaryColor = `hsl(${p.h},${p.s}%,${p.l}%)`;
+  const secondaryColor = `hsl(${s.h},${s.s}%,${s.l}%)`;
+  document.documentElement.style.setProperty('--glow', primaryColor);
+  document.documentElement.style.setProperty('--primary-bg', primaryColor);
+  document.documentElement.style.setProperty('--secondary-bg', secondaryColor);
+}
+applyColors();
 
-// Save changes
-document.getElementById("saveBtn").addEventListener("click", async () => {
-  const newUsername = document.getElementById("usernameInput").value.trim();
-  const newGlow = document.getElementById("glowColor").value;
-
-  if(!newUsername){alert("Username cannot be empty"); return;}
-
-  await db.collection("users").doc(currentUserUid).set({
-    username: newUsername,
-    glowColor: newGlow
-  }, {merge:true});
-
-  document.documentElement.style.setProperty("--glow", newGlow);
-  alert("Settings saved!");
-});
-
-// Reset stats
-document.getElementById("resetBtn").addEventListener("click", async () => {
-  if(!confirm("Are you sure you want to reset your stats?")) return;
-
-  await db.collection("users").doc(currentUserUid).set({
-    packsOpened: 0,
-    blooks: [],
-    messagesSent: 0
-  }, {merge:true});
-
-  alert("Stats reset!");
+// Auth guard
+auth.onAuthStateChanged(user=>{
+  if(!user) return window.location.href='login.html';
+  currentUserUid = user.uid;
+  loadUserSettings();
 });
 
 // Logout
-document.getElementById("logoutBtn").addEventListener("click", async () => {
+document.getElementById('logoutBtn').addEventListener('click', async ()=>{
   await auth.signOut();
-  window.location.href = "login.html";
+  window.location.href='login.html';
 });
-</script>
 
+function loadUserSettings(){
+  const usernameInput = document.getElementById('usernameInput');
+  const primaryInput = document.getElementById('primaryColor');
+  const secondaryInput = document.getElementById('secondaryColor');
+
+  db.collection('users').doc(currentUserUid).get().then(doc=>{
+    if(doc.exists){
+      usernameInput.value = doc.data().username || "";
+    }
+  });
+
+  // Load colors from localStorage
+  const colors = JSON.parse(localStorage.getItem('appliedColors') || '{}');
+  if(colors.primary) primaryInput.value = hslToHex(colors.primary.h, colors.primary.s, colors.primary.l);
+  if(colors.secondary) secondaryInput.value = hslToHex(colors.secondary.h, colors.secondary.s, colors.secondary.l);
+}
+
+// Save settings
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+  const username = document.getElementById('usernameInput').value.trim();
+  const primaryColor = document.getElementById('primaryColor').value;
+  const secondaryColor = document.getElementById('secondaryColor').value;
+
+  if(username) await db.collection('users').doc(currentUserUid).set({username},{merge:true});
+
+  // Save colors to localStorage
+  const colors = {
+    primary: hexToHSL(primaryColor),
+    secondary: hexToHSL(secondaryColor)
+  };
+  localStorage.setItem('appliedColors', JSON.stringify(colors));
+  applyColors();
+
+  alert('Settings saved! Refresh other pages to see new colors.');
+});
+
+// Helper: HEX <-> HSL conversion
+function hexToHSL(H) {
+  let r=parseInt(H.substring(1,3),16)/255;
+  let g=parseInt(H.substring(3,5),16)/255;
+  let b=parseInt(H.substring(5,7),16)/255;
+  let max=Math.max(r,g,b), min=Math.min(r,g,b);
+  let h,s,l=(max+min)/2;
+  if(max==min){h=s=0;}
+  else{
+    let d=max-min;
+    s=l>0.5?d/(2-max-min):d/(max+min);
+    switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;case b:h=(r-g)/d+4;break;}
+    h=Math.round(h*360); s=Math.round(s*100); l=Math.round(l*100);
+  }
+  return {h,s,l};
+}
+function hslToHex(h,s,l){
+  s/=100; l/=100;
+  let c=(1-Math.abs(2*l-1))*s;
+  let x=c*(1-Math.abs((h/60)%2-1));
+  let m=l-c/2;
+  let r=0,g=0,b=0;
+  if(h<60){r=c;g=x;b=0;} else if(h<120){r=x;g=c;b=0;} else if(h<180){r=0;g=c;b=x;} 
+  else if(h<240){r=0;g=x;b=c;} else if(h<300){r=x;g=0;b=c;} else{r=c;g=0;b=x;}
+  r=Math.round((r+m)*255); g=Math.round((g+m)*255); b=Math.round((b+m)*255);
+  return "#" + ((1<<24) + (r<<16) + (g<<8) + b).toString(16).slice(1);
+}
+</script>
 </body>
 </html>
