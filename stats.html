@@ -5,16 +5,68 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Stats — Ghostlet</title>
 <style>
-:root{--glow:#ff6aff}
-body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee}
-.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#242444;box-shadow:0 0 12px var(--glow);border-bottom:2px solid var(--glow);position:sticky;top:0;z-index:100}
-.topbar button{background:var(--glow);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:4px}
-.brand{color:var(--glow);font-weight:800;text-decoration:none}
-.container{max-width:700px;margin:20px auto;padding:0 18px}
-.h1{color:var(--glow);font-size:1.6rem;margin:12px 0;text-align:center}
-.stat-card{background:linear-gradient(180deg,#20203a,#23233e);padding:18px;border-radius:12px;margin:12px 0;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,0.6)}
-.stat-card h2{margin-bottom:8px;color:#fff;font-size:1.4rem}
-.stat-card p{color:#ccc;font-size:1.1rem}
+:root{--glow:#ff6aff;--primary-bg:#0d0d1a;--secondary-bg:#1a1a2e}
+body{
+  margin:0;
+  font-family:Segoe UI,Arial,sans-serif;
+  background:linear-gradient(180deg,var(--primary-bg),var(--secondary-bg));
+  color:#eee;
+}
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 18px;
+  background:#242444;
+  box-shadow:0 0 12px var(--glow);
+  border-bottom:2px solid var(--glow);
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+.topbar button{
+  background:var(--glow);
+  border:none;
+  color:#fff;
+  padding:6px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  margin-left:4px;
+}
+.brand{
+  color:var(--glow);
+  font-weight:800;
+  text-decoration:none;
+}
+.container{
+  max-width:500px;
+  margin:20px auto;
+  padding:0 18px;
+}
+.h1{
+  color:var(--glow);
+  font-size:1.6rem;
+  margin:12px 0;
+  text-align:center;
+}
+.stat-card{
+  background:linear-gradient(180deg,#20203a,#23233e);
+  padding:18px;
+  border-radius:12px;
+  margin:12px 0;
+  text-align:center;
+  box-shadow:0 6px 20px rgba(0,0,0,0.6);
+  transition:all 0.3s ease;
+}
+.stat-card h2{
+  margin-bottom:8px;
+  color:#fff;
+  font-size:1.4rem;
+}
+.stat-card p{
+  color:#ccc;
+  font-size:1.1rem;
+}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -57,6 +109,7 @@ body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d
 </div>
 
 <script>
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
   authDomain: "ghostlet-98357.firebaseapp.com",
@@ -65,12 +118,24 @@ const firebaseConfig = {
   messagingSenderId: "843012219969",
   appId: "1:843012219969:web:9e3037578726debf2212c0"
 };
-
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
 let currentUserUid = null;
+
+// Load saved colors from localStorage for dynamic theming
+function applyColors() {
+  const colors = JSON.parse(localStorage.getItem('appliedColors') || '{"primary":{"h":300,"s":100,"l":42},"secondary":{"h":270,"s":80,"l":18}}');
+  const p = colors.primary;
+  const s = colors.secondary;
+  const primaryBg = `hsl(${p.h},${p.s}%,${p.l}%)`;
+  const secondaryBg = `hsl(${s.h},${s.s}%,${s.l}%)`;
+  document.documentElement.style.setProperty('--glow', primaryBg);
+  document.documentElement.style.setProperty('--primary-bg', primaryBg);
+  document.documentElement.style.setProperty('--secondary-bg', secondaryBg);
+}
+applyColors();
 
 // Auth guard
 auth.onAuthStateChanged(user => {
@@ -85,6 +150,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   window.location.href='login.html';
 });
 
+// Load stats live
 function loadStats() {
   const usernameEl = document.getElementById('usernameDisplay');
   const packsEl = document.getElementById('packsCount');
@@ -93,7 +159,6 @@ function loadStats() {
 
   const userRef = db.collection('users').doc(currentUserUid);
 
-  // Listen to user data changes live
   userRef.onSnapshot(async doc => {
     if(!doc.exists) return;
     const data = doc.data();
@@ -101,26 +166,22 @@ function loadStats() {
     usernameEl.textContent = "Username: " + (data.username || "Unknown");
 
     // Packs opened
-    if(data.packsOpened !== undefined) {
-      packsEl.textContent = data.packsOpened;
-    } else {
-      // Count from subcollection
+    if(data.packsOpened !== undefined) packsEl.textContent = data.packsOpened;
+    else {
       const packsSnap = await userRef.collection('packsOpened').get();
       packsEl.textContent = packsSnap.size;
     }
 
     // Blooks owned
-    if(data.blooks !== undefined) {
-      blooksEl.textContent = data.blooks.length;
-    } else {
+    if(data.blooks !== undefined) blooksEl.textContent = data.blooks.length;
+    else {
       const blooksSnap = await userRef.collection('blooks').get();
       blooksEl.textContent = blooksSnap.size;
     }
 
     // Messages sent
-    if(data.messagesSent !== undefined){
-      messagesEl.textContent = data.messagesSent;
-    } else {
+    if(data.messagesSent !== undefined) messagesEl.textContent = data.messagesSent;
+    else {
       const messagesSnap = await db.collection('messages').where('uid','==',currentUserUid).get();
       messagesEl.textContent = messagesSnap.size;
     }
