@@ -2,174 +2,186 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ghostlet - Stats</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Titan+One&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<title>Stats</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: Nunito, sans-serif;
-  background: linear-gradient(rgba(255,128,0,0.15) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(255,191,0,0.15) 1px, transparent 1px),
-              linear-gradient(135deg, rgb(255,128,0), rgb(255,191,0));
-  background-size: 40px 40px;
-  color: white;
-}
+  :root{--glow:#ff6aff}
+  body{margin:0;font-family:Segoe UI,Arial;background:linear-gradient(180deg,#0d0d1a,#1a1a2e);color:#eee}
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;background:#242444;box-shadow:0 0 12px var(--glow);border-bottom:2px solid var(--glow);position:sticky;top:0;z-index:100}
+  .brand{color:var(--glow);font-weight:800;text-decoration:none}
+  .topbar button{background:var(--glow);border:none;color:#fff;padding:6px 10px;border-radius:8px;cursor:pointer;margin-left:4px}
 
-.header {
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(10px);
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  border-bottom: 2px solid rgba(255,255,255,0.15);
-}
+  .container{max-width:500px;margin:20px auto;padding:0 18px}
 
-.logo {
-  font-family: Titan One;
-  font-size: 2rem;
-}
+  .h1{color:var(--glow);font-size:1.6rem;margin:12px 0;text-align:center}
 
-.container {
-  margin: 30px auto;
-  width: 90%;
-  max-width: 900px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 20px;
-  padding: 25px;
-  backdrop-filter: blur(12px);
-  border: 2px solid rgba(255,255,255,0.15);
-}
+  .profileCard{
+    background:#242444;
+    border:2px solid var(--glow);
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:18px;
+    text-align:center;
+    box-shadow:0 0 12px var(--glow);
+  }
 
-.profile-row {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
+  .pfp{
+    width:90px;height:90px;border-radius:50%;border:3px solid var(--glow);
+    object-fit:cover;background:#111;margin-bottom:10px;
+  }
 
-.pfp {
-  width: 110px;
-  height: 110px;
-  border-radius: 18px;
-  background: rgba(0,0,0,0.25);
-  border: 2px solid rgba(255,255,255,0.3);
-  object-fit: contain;
-}
+  .username{
+    font-size:1.4rem;
+    font-weight:700;
+    color:var(--glow);
+    margin:6px 0;
+  }
 
-.username {
-  font-size: 2rem;
-  font-weight: 700;
-}
+  .badges{
+    margin-top:10px;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:8px;
+  }
 
-.badges-row {
-  margin-top: 5px;
-}
+  .badge{
+    background:#2b2b44;
+    padding:6px 10px;
+    border-radius:8px;
+    border:1px solid var(--glow);
+    font-size:0.8rem;
+  }
 
-.badges-row img {
-  width: 34px;
-  margin-right: 5px;
-}
+  .statsCard{
+    background:#242444;
+    border:2px solid var(--glow);
+    border-radius:14px;
+    padding:16px;
+    box-shadow:0 0 12px var(--glow);
+  }
 
-.stats-box {
-  margin-top: 30px;
-  background: rgba(255,255,255,0.10);
-  padding: 18px;
-  border-radius: 15px;
-  border: 2px solid rgba(255,255,255,0.2);
-}
-
-.stat {
-  font-size: 1.4rem;
-  margin: 10px 0;
-  display: flex;
-  justify-content: space-between;
-}
+  .statRow{
+    display:flex;
+    justify-content:space-between;
+    margin:10px 0;
+    padding:8px;
+    background:#2b2b44;
+    border-radius:8px;
+  }
 </style>
-</head>
 
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { 
+    getFirestore, doc, getDoc 
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
+    authDomain: "ghostlet-98357.firebaseapp.com",
+    projectId: "ghostlet-98357",
+    storageBucket: "ghostlet-98357.firebasestorage.app",
+    messagingSenderId: "843012219969",
+    appId: "1:843012219969:web:9e3037578726debf2212c0"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth();
+  const db = getFirestore();
+
+  const usernameEl = document.getElementById("username");
+  const tokensEl = document.getElementById("tokens");
+  const packsEl = document.getElementById("packs");
+  const blooksEl = document.getElementById("blooks");
+  const msgsEl = document.getElementById("messages");
+  const pfpEl = document.getElementById("pfp");
+  const badgesEl = document.getElementById("badges");
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location = "login.html";
+      return;
+    }
+
+    const uid = user.uid;
+    const userRef = doc(db, "users", uid);
+    const snap = await getDoc(userRef);
+
+    if (!snap.exists()) return;
+
+    const data = snap.data();
+
+    // username
+    usernameEl.textContent = data.username || "Unknown User";
+
+    // tokens
+    tokensEl.textContent = data.tokens || 0;
+
+    // packs opened
+    packsEl.textContent = data.packsOpened || 0;
+
+    // blooks owned (count)
+    blooksEl.textContent = data.blooks ? data.blooks.length : 0;
+
+    // messages sent
+    msgsEl.textContent = data.messagesSent || 0;
+
+    // pfp based on owned blooks
+    if (data.blooks && data.blooks.length > 0) {
+      // you can set your own image paths
+      pfpEl.src = `assets/blooks/${data.blooks[0]}.png`;
+    }
+
+    // badges (example: based on packs opened)
+    badgesEl.innerHTML = "";
+
+    if (data.packsOpened >= 1) {
+      badgesEl.innerHTML += `<div class="badge">Opened First Pack</div>`;
+    }
+    if (data.blooks && data.blooks.length >= 5) {
+      badgesEl.innerHTML += `<div class="badge">Collector</div>`;
+    }
+    if (data.messagesSent >= 10) {
+      badgesEl.innerHTML += `<div class="badge">Chatty</div>`;
+    }
+  });
+
+</script>
+
+</head>
 <body>
-<div class="header">
-  <div class="logo">Ghostlet</div>
-  <a href="home.html" style="color:white;text-decoration:none;font-weight:700;">Home</a>
+
+<div class="topbar">
+  <a class="brand" href="index.html">Ghostlet</a>
+  <div>
+    <button onclick="location.href='blooks.html'">Blooks</button>
+    <button onclick="location.href='market.html'">Market</button>
+    <button onclick="location.href='chat.html'">Chat</button>
+    <button onclick="location.href='settings.html'">Settings</button>
+  </div>
 </div>
 
 <div class="container">
+  <h1 class="h1">Your Stats</h1>
 
-  <div class="profile-row">
-    <img id="pfp" class="pfp" src="">
-    <div>
-      <div id="username" class="username">Loading...</div>
-      <div id="badges" class="badges-row"></div>
-    </div>
+  <div class="profileCard">
+    <img id="pfp" class="pfp" src="assets/defaultpfp.png">
+    <div id="username" class="username">Loading...</div>
+
+    <div id="badges" class="badges"></div>
   </div>
 
-  <div class="stats-box">
-    <div class="stat"><span>Tokens:</span> <span id="tokens">0</span></div>
-    <div class="stat"><span>Packs Opened:</span> <span id="packsOpened">0</span></div>
-    <div class="stat"><span>Blooks Owned:</span> <span id="blooksOwned">0</span></div>
-    <div class="stat"><span>Messages Sent:</span> <span id="messagesSent">0</span></div>
+  <div class="statsCard">
+    <div class="statRow"><span>Tokens</span><span id="tokens">0</span></div>
+    <div class="statRow"><span>Packs Opened</span><span id="packs">0</span></div>
+    <div class="statRow"><span>Blooks Owned</span><span id="blooks">0</span></div>
+    <div class="statRow"><span>Messages Sent</span><span id="messages">0</span></div>
   </div>
 
 </div>
-
-<script>
-// ---------------------------
-// FIREBASE INIT
-// ---------------------------
-const firebaseConfig = {
-  apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
-  authDomain: "ghostlet-98357.firebaseapp.com",
-  projectId: "ghostlet-98357",
-  storageBucket: "ghostlet-98357.firebasestorage.app",
-  messagingSenderId: "843012219969",
-  appId: "1:843012219969:web:9e3037578726debf2212c0"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
-
-
-// ---------------------------
-// LOAD STATS
-// ---------------------------
-auth.onAuthStateChanged(async user => {
-  if (!user) {
-    window.location.href = "login.html";
-    return;
-  }
-
-  const uid = user.uid;
-  const ref = db.collection("users").doc(uid);
-  const doc = await ref.get();
-
-  if (!doc.exists) return;
-
-  const data = doc.data();
-
-  document.getElementById("username").textContent = data.username || "Unknown";
-
-  // pfp
-  if (data.pfp) {
-    document.getElementById("pfp").src = data.pfp;
-  }
-
-  // stats
-  document.getElementById("tokens").textContent = data.tokens || 0;
-  document.getElementById("packsOpened").textContent = data.packsOpened || 0;
-  document.getElementById("messagesSent").textContent = data.messagesSent || 0;
-
-  const owned = data.ownedBlooks || [];
-  document.getElementById("blooksOwned").textContent = owned.length;
-
-});
-</script>
 
 </body>
 </html>
