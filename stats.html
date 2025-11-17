@@ -230,7 +230,16 @@
     import { getFirestore, doc, getDoc }
       from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    const firebaseConfig = YOUR_FIREBASE_CONFIG;
+    const firebaseConfig = 
+      {
+  apiKey: "AIzaSyBLPQtq39tEcha66rw_ovWa5-I3Nl1qyos",
+  authDomain: "ghostlet-98357.firebaseapp.com",
+  databaseURL: "https://ghostlet-98357-default-rtdb.firebaseio.com",
+  projectId: "ghostlet-98357",
+  storageBucket: "ghostlet-98357.firebasestorage.app",
+  messagingSenderId: "843012219969",
+  appId: "1:843012219969:web:9e3037578726debf2212c0"
+};
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
